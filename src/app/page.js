@@ -75,7 +75,7 @@ export default function Home() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="text-4xl md:text-6xl font-bold mt-6 mb-4 leading-tight"
         >
-          Premium Dark Store
+          Premium Store
         </motion.h2>
 
         <motion.p
@@ -84,7 +84,7 @@ export default function Home() {
           transition={{ delay: 0.4 }}
           className="text-gray-400 max-w-xl mx-auto mb-8 text-sm md:text-base"
         >
-          Clean. Fast. Minimal. Built for modern ecommerce experience.
+          
         </motion.p>
 
         <motion.div
@@ -211,7 +211,8 @@ export default function Home() {
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-sm text-gray-500">
           <div>
             <h5 className="text-white font-bold mb-3">ShopKaro</h5>
-            <p>Your premium dark store for everything.</p>
+            <p>Your premium store for everything.</p>
+            <p>Note - This site is currently in development phase and it will be live soon for all users.</p>
           </div>
           <div>
             <h5 className="text-white font-bold mb-3">Company</h5>
