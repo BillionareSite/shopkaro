@@ -32,14 +32,12 @@ export default function Products() {
       >
         <div className="flex items-center justify-between">
           <a href="/" className="text-2xl font-bold tracking-wide">ShopKaro</a>
-
           <div className="hidden md:flex gap-6 text-gray-300 text-sm">
             <a href="/" className="hover:text-white transition">Home</a>
             <a href="/products" className="hover:text-white transition">Products</a>
             <a href="/auth/login" className="hover:text-white transition">Login</a>
             <a href="/auth/signup" className="hover:text-white transition">Signup</a>
           </div>
-
           <a href="/cart" className="hidden md:block">
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -49,7 +47,6 @@ export default function Products() {
               Cart 🛒
             </motion.button>
           </a>
-
           <button
             className="md:hidden text-white text-2xl focus:outline-none"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -57,7 +54,6 @@ export default function Products() {
             {menuOpen ? '✕' : '☰'}
           </button>
         </div>
-
         {menuOpen && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -131,8 +127,8 @@ export default function Products() {
                 className="bg-[#111] border border-gray-800 rounded-xl p-4 cursor-pointer block"
               >
                 <div className="relative bg-[#1a1a1a] h-36 md:h-44 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
-                  {product.image ? (
-                    <img src={product.image} alt={product.name} className="h-full w-full object-cover"/>
+                  {product.images?.[0] ? (
+                    <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover"/>
                   ) : (
                     <span className="text-4xl">🛍️</span>
                   )}

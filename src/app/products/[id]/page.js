@@ -9,6 +9,7 @@ export default function ProductDetail({ params }) {
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [activeImage, setActiveImage] = useState(0)
 
   useEffect(() => {
     fetch('/api/products/' + id)
@@ -47,6 +48,8 @@ export default function ProductDetail({ params }) {
   const discount = product.originalPrice > product.price
     ? Math.round((1 - product.price / product.originalPrice) * 100)
     : 0
+
+  const images = product.images?.length > 0 ? product.images : []
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -108,17 +111,44 @@ export default function ProductDetail({ params }) {
       <div className="max-w-5xl mx-auto px-6 py-4 pb-16">
         <div className="grid md:grid-cols-2 gap-10">
 
-          {/* Product Image */}
+          {/* Image Gallery */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
-            className="bg-[#111] border border-gray-800 rounded-2xl overflow-hidden flex items-center justify-center h-72 md:h-96"
           >
-            {product.image ? (
-              <img src={product.image} alt={product.name} className="w-full h-full object-cover"/>
-            ) : (
-              <span className="text-8xl">🛍️</span>
+            {/* Main Image */}
+            <div className="bg-[#111] border border-gray-800 rounded-2xl overflow-hidden flex items-center justify-center h-72 md:h-96 mb-3">
+              {images.length > 0 ? (
+                <motion.img
+                  key={activeImage}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                  src={images[activeImage]}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-8xl">🛍️</span>
+              )}
+            </div>
+
+            {/* Thumbnail Row */}
+            {images.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {images.map((img, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setActiveImage(index)}
+                    className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition ${
+                      activeImage === index ? 'border-white' : 'border-gray-700 hover:border-gray-500'
+                    }`}
+                  >
+                    <img src={img} alt={`View ${index + 1}`} className="w-full h-full object-cover"/>
+                  </button>
+                ))}
+              </div>
             )}
           </motion.div>
 

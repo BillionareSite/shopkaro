@@ -7,7 +7,8 @@ export default function Admin() {
   const [loading, setLoading] = useState(true)
   const [form, setForm] = useState({
     name: '', description: '', price: '', originalPrice: '',
-    image: '', category: 'Electronics', stock: ''
+    images: [''],
+    category: 'Electronics', stock: ''
   })
   const [message, setMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -33,6 +34,7 @@ export default function Admin() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...form,
+        images: form.images.filter(url => url.trim() !== ''),
         price: parseFloat(form.price),
         originalPrice: parseFloat(form.originalPrice),
         stock: parseInt(form.stock)
@@ -42,7 +44,7 @@ export default function Admin() {
     setMessage(data.message)
     setSubmitting(false)
     if (res.ok) {
-      setForm({ name: '', description: '', price: '', originalPrice: '', image: '', category: 'Electronics', stock: '' })
+      setForm({ name: '', description: '', price: '', originalPrice: '', images: [''], category: 'Electronics', stock: '' })
       fetchProducts()
     }
   }
@@ -158,15 +160,43 @@ export default function Admin() {
                 </div>
               </div>
 
+              {/* Multiple Images */}
               <div>
-                <label className="text-sm text-gray-400 mb-1 block">Image URL</label>
-                <input
-                  type="text"
-                  placeholder="https://example.com/image.jpg"
-                  value={form.image}
-                  className="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
-                  onChange={(e) => setForm({ ...form, image: e.target.value })}
-                />
+                <label className="text-sm text-gray-400 mb-2 block">Product Images</label>
+                {form.images.map((img, index) => (
+                  <div key={index} className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      placeholder={`Image URL ${index + 1}`}
+                      value={img}
+                      onChange={(e) => {
+                        const updated = [...form.images]
+                        updated[index] = e.target.value
+                        setForm({ ...form, images: updated })
+                      }}
+                      className="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
+                    />
+                    {form.images.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = form.images.filter((_, i) => i !== index)
+                          setForm({ ...form, images: updated })
+                        }}
+                        className="text-red-500 hover:text-red-400 px-3 text-lg"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, images: [...form.images, ''] })}
+                  className="text-gray-400 hover:text-white text-sm transition mt-1"
+                >
+                  + Add another image
+                </button>
               </div>
 
               <motion.button
@@ -209,8 +239,8 @@ export default function Admin() {
                     className="flex items-center gap-3 bg-[#1a1a1a] border border-gray-800 rounded-xl p-3"
                   >
                     <div className="w-12 h-12 bg-[#222] rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {product.image ? (
-                        <img src={product.image} alt={product.name} className="w-full h-full object-cover"/>
+                      {product.images?.[0] ? (
+                        <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover"/>
                       ) : (
                         <span className="text-xl">🛍️</span>
                       )}
@@ -218,6 +248,7 @@ export default function Admin() {
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm truncate">{product.name}</p>
                       <p className="text-gray-400 text-xs">₹{product.price} · {product.category}</p>
+                      <p className="text-gray-600 text-xs">{product.images?.length || 0} photo(s)</p>
                     </div>
                     <button
                       onClick={() => handleDelete(product.id)}

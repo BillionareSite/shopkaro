@@ -4,10 +4,7 @@ import { prisma } from '@/lib/prisma'
 export async function POST(req) {
   try {
     const body = await req.json()
-    console.log('Received:', body)
-    console.log('Prisma:', prisma)
-
-    const { name, description, price, originalPrice, image, category, stock } = body
+    const { name, description, price, originalPrice, images, category, stock } = body
 
     if (!name || !price || !category) {
       return NextResponse.json({ message: 'Name, price and category are required' }, { status: 400 })
@@ -19,7 +16,7 @@ export async function POST(req) {
         description: description || '',
         price: parseFloat(price),
         originalPrice: parseFloat(originalPrice) || parseFloat(price),
-        image: image || '',
+        images: images || [],
         category,
         stock: parseInt(stock) || 0
       }
