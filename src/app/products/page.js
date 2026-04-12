@@ -40,13 +40,15 @@ export default function Products() {
             <a href="/auth/signup" className="hover:text-white transition">Signup</a>
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="hidden md:block bg-white text-black px-4 py-2 rounded-lg font-semibold text-sm"
-          >
-            Cart 🛒
-          </motion.button>
+          <a href="/cart" className="hidden md:block">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-white text-black px-4 py-2 rounded-lg font-semibold text-sm"
+            >
+              Cart 🛒
+            </motion.button>
+          </a>
 
           <button
             className="md:hidden text-white text-2xl focus:outline-none"
@@ -66,7 +68,7 @@ export default function Products() {
             <a href="/products" className="text-gray-300 hover:text-white transition">Products</a>
             <a href="/auth/login" className="text-gray-300 hover:text-white transition">Login</a>
             <a href="/auth/signup" className="bg-white text-black text-center py-2 rounded-lg font-semibold">Sign Up</a>
-            <button className="border border-gray-700 text-white text-center py-2 rounded-lg">Cart 🛒</button>
+            <a href="/cart" className="border border-gray-700 text-white text-center py-2 rounded-lg hover:border-white transition">Cart 🛒</a>
           </motion.div>
         )}
       </motion.nav>
@@ -80,7 +82,6 @@ export default function Products() {
           All Products
         </motion.h2>
 
-        {/* Category Filter */}
         <div className="flex gap-3 overflow-x-auto mb-8 pb-2">
           {categories.map(cat => (
             <button
@@ -97,7 +98,6 @@ export default function Products() {
           ))}
         </div>
 
-        {/* Products Grid */}
         {loading ? (
           <div className="text-center py-20 text-gray-500">Loading products...</div>
         ) : filtered.length === 0 ? (
@@ -154,7 +154,7 @@ export default function Products() {
                   whileTap={{ scale: 0.95 }}
                   className="mt-3 w-full bg-white text-black text-sm py-2 rounded-lg font-semibold"
                 >
-                  Add to Cart
+                  View Product
                 </motion.button>
               </motion.a>
             ))}

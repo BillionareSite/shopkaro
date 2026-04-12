@@ -18,7 +18,6 @@ export default function Home() {
         <div className="flex items-center justify-between">
           <a href="/" className="text-2xl font-bold tracking-wide">ShopKaro</a>
 
-          {/* Desktop links */}
           <div className="hidden md:flex gap-6 text-gray-300 text-sm">
             <a href="/" className="hover:text-white transition">Home</a>
             <a href="/products" className="hover:text-white transition">Products</a>
@@ -26,7 +25,7 @@ export default function Home() {
             <a href="/auth/signup" className="hover:text-white transition">Signup</a>
           </div>
 
-          <div className="hidden md:flex items-center gap-3">
+          <a href="/cart" className="hidden md:block">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -34,9 +33,8 @@ export default function Home() {
             >
               Cart 🛒
             </motion.button>
-          </div>
+          </a>
 
-          {/* Mobile hamburger */}
           <button
             className="md:hidden text-white text-2xl focus:outline-none"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -45,7 +43,6 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Mobile dropdown */}
         {menuOpen && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -56,7 +53,7 @@ export default function Home() {
             <a href="/products" className="text-gray-300 hover:text-white transition">Products</a>
             <a href="/auth/login" className="text-gray-300 hover:text-white transition">Login</a>
             <a href="/auth/signup" className="bg-white text-black text-center py-2 rounded-lg font-semibold">Sign Up</a>
-            <button className="border border-gray-700 text-white text-center py-2 rounded-lg">Cart 🛒</button>
+            <a href="/cart" className="border border-gray-700 text-white text-center py-2 rounded-lg hover:border-white transition">Cart 🛒</a>
           </motion.div>
         )}
       </motion.nav>
@@ -78,7 +75,7 @@ export default function Home() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="text-4xl md:text-6xl font-bold mt-6 mb-4 leading-tight"
         >
-          Premium Store
+          Premium Dark Store
         </motion.h2>
 
         <motion.p
@@ -87,7 +84,7 @@ export default function Home() {
           transition={{ delay: 0.4 }}
           className="text-gray-400 max-w-xl mx-auto mb-8 text-sm md:text-base"
         >
-          
+          Clean. Fast. Minimal. Built for modern ecommerce experience.
         </motion.p>
 
         <motion.div
@@ -96,13 +93,15 @@ export default function Home() {
           transition={{ delay: 0.5 }}
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-white text-black px-8 py-3 rounded-lg font-semibold"
-          >
-            Shop Now
-          </motion.button>
+          <a href="/products">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-white text-black px-8 py-3 rounded-lg font-semibold"
+            >
+              Shop Now
+            </motion.button>
+          </a>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -114,14 +113,13 @@ export default function Home() {
       </section>
 
       {/* Category Pills */}
-      <section className="px-6 py-4 flex gap-3 overflow-x-auto scrollbar-hide">
+      <section className="px-6 py-4 flex gap-3 overflow-x-auto">
         {["All", "Electronics", "Fashion", "Home", "Beauty", "Sports", "Books", "Toys"].map((cat) => (
-          <button
-            key={cat}
-            className="whitespace-nowrap px-4 py-2 rounded-full border border-gray-700 text-sm text-gray-400 hover:border-white hover:text-white transition"
-          >
-            {cat}
-          </button>
+          <a href={'/products?category=' + cat} key={cat}>
+            <button className="whitespace-nowrap px-4 py-2 rounded-full border border-gray-700 text-sm text-gray-400 hover:border-white hover:text-white transition">
+              {cat}
+            </button>
+          </a>
         ))}
       </section>
 
@@ -172,13 +170,15 @@ export default function Home() {
                 <span className="font-bold text-sm">{product.price}</span>
                 <span className="text-gray-600 text-xs line-through">{product.original}</span>
               </div>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="mt-3 w-full bg-white text-black text-sm py-2 rounded-lg font-semibold"
-              >
-                Add to Cart
-              </motion.button>
+              <a href="/products">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="mt-3 w-full bg-white text-black text-sm py-2 rounded-lg font-semibold"
+                >
+                  Shop Now
+                </motion.button>
+              </a>
             </motion.div>
           ))}
         </motion.div>
@@ -195,13 +195,15 @@ export default function Home() {
           <h4 className="text-2xl font-bold">Midnight Sale 🎉</h4>
           <p className="text-gray-400 mt-1">Up to 70% off on selected items</p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="bg-white text-black px-8 py-3 rounded-lg font-semibold whitespace-nowrap"
-        >
-          Explore Deals
-        </motion.button>
+        <a href="/products">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-white text-black px-8 py-3 rounded-lg font-semibold whitespace-nowrap"
+          >
+            Explore Deals
+          </motion.button>
+        </a>
       </motion.section>
 
       {/* Footer */}
@@ -209,8 +211,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-sm text-gray-500">
           <div>
             <h5 className="text-white font-bold mb-3">ShopKaro</h5>
-            <p>Your premium  store for everything.</p>
-            <p>Note- This site is currently under development and will be live soon for all users</p>
+            <p>Your premium dark store for everything.</p>
           </div>
           <div>
             <h5 className="text-white font-bold mb-3">Company</h5>
