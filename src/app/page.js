@@ -1,9 +1,19 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [featured, setFeatured] = useState([])
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(data => {
+        const all = data.products || []
+        setFeatured(all.filter(p => p.featured))
+      })
+  }, [])
 
   return (
     <main className="min-h-screen bg-black text-white overflow-hidden">
@@ -17,14 +27,12 @@ export default function Home() {
       >
         <div className="flex items-center justify-between">
           <a href="/" className="text-2xl font-bold tracking-wide">ShopKaro</a>
-
           <div className="hidden md:flex gap-6 text-gray-300 text-sm">
             <a href="/" className="hover:text-white transition">Home</a>
             <a href="/products" className="hover:text-white transition">Products</a>
             <a href="/auth/login" className="hover:text-white transition">Login</a>
             <a href="/auth/signup" className="hover:text-white transition">Signup</a>
           </div>
-
           <a href="/cart" className="hidden md:block">
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -34,7 +42,6 @@ export default function Home() {
               Cart 🛒
             </motion.button>
           </a>
-
           <button
             className="md:hidden text-white text-2xl focus:outline-none"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -42,7 +49,6 @@ export default function Home() {
             {menuOpen ? '✕' : '☰'}
           </button>
         </div>
-
         {menuOpen && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -68,7 +74,6 @@ export default function Home() {
         >
           New Arrivals 🔥
         </motion.span>
-
         <motion.h2
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -77,16 +82,13 @@ export default function Home() {
         >
           Premium Store
         </motion.h2>
-
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
           className="text-gray-400 max-w-xl mx-auto mb-8 text-sm md:text-base"
         >
-          
         </motion.p>
-
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -123,54 +125,58 @@ export default function Home() {
         ))}
       </section>
 
-      {/* Products */}
+      {/* Featured Products */}
       <section className="px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl md:text-2xl font-semibold">Featured Products</h3>
           <a href="/products" className="text-gray-400 text-sm hover:text-white transition">View all →</a>
         </div>
 
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: {},
-            visible: { transition: { staggerChildren: 0.08 } }
-          }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
-        >
-          {[
-            { name: "Wireless Earbuds", price: "₹1,299", original: "₹2,499", tag: "52% off" },
-            { name: "Smart Watch", price: "₹2,999", original: "₹5,999", tag: "50% off" },
-            { name: "Running Shoes", price: "₹899", original: "₹1,799", tag: "50% off" },
-            { name: "Backpack", price: "₹599", original: "₹999", tag: "40% off" },
-            { name: "Sunglasses", price: "₹399", original: "₹799", tag: "50% off" },
-            { name: "Water Bottle", price: "₹249", original: "₹499", tag: "50% off" },
-            { name: "Desk Lamp", price: "₹699", original: "₹1,299", tag: "46% off" },
-            { name: "Phone Stand", price: "₹199", original: "₹399", tag: "50% off" },
-          ].map((product, i) => (
-            <motion.div
-              key={i}
-              variants={{
-                hidden: { opacity: 0, y: 40 },
-                visible: { opacity: 1, y: 0 }
-              }}
-              whileHover={{ scale: 1.03, borderColor: "#fff" }}
-              transition={{ duration: 0.2 }}
-              className="bg-[#111] border border-gray-800 rounded-xl p-4 cursor-pointer"
-            >
-              <div className="relative bg-[#1a1a1a] h-36 md:h-44 rounded-lg mb-3 flex items-center justify-center">
-                <span className="text-4xl">🛍️</span>
-                <span className="absolute top-2 left-2 bg-white text-black text-xs font-bold px-2 py-1 rounded-full">
-                  {product.tag}
-                </span>
-              </div>
-              <h4 className="font-semibold text-sm mb-1">{product.name}</h4>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-sm">{product.price}</span>
-                <span className="text-gray-600 text-xs line-through">{product.original}</span>
-              </div>
-              <a href="/products">
+        {featured.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-gray-600 text-sm">No featured products yet. Mark products as featured from the admin panel.</p>
+          </div>
+        ) : (
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.08 } }
+            }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
+          >
+            {featured.map((product) => (
+              <motion.a
+                key={product.id}
+                href={'/products/' + product.id}
+                variants={{
+                  hidden: { opacity: 0, y: 40 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                whileHover={{ scale: 1.03, borderColor: '#fff' }}
+                transition={{ duration: 0.2 }}
+                className="bg-[#111] border border-gray-800 rounded-xl p-4 cursor-pointer block"
+              >
+                <div className="relative bg-[#1a1a1a] h-36 md:h-44 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                  {product.images?.[0] ? (
+                    <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover"/>
+                  ) : (
+                    <span className="text-4xl">🛍️</span>
+                  )}
+                  {product.originalPrice > product.price && (
+                    <span className="absolute top-2 left-2 bg-white text-black text-xs font-bold px-2 py-1 rounded-full">
+                      {Math.round((1 - product.price / product.originalPrice) * 100)}% off
+                    </span>
+                  )}
+                </div>
+                <h4 className="font-semibold text-sm mb-1">{product.name}</h4>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-sm">₹{product.price}</span>
+                  {product.originalPrice > product.price && (
+                    <span className="text-gray-600 text-xs line-through">₹{product.originalPrice}</span>
+                  )}
+                </div>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -178,10 +184,10 @@ export default function Home() {
                 >
                   Shop Now
                 </motion.button>
-              </a>
-            </motion.div>
-          ))}
-        </motion.div>
+              </motion.a>
+            ))}
+          </motion.div>
+        )}
       </section>
 
       {/* Banner */}

@@ -23,6 +23,7 @@ model Product {
   images        String[]
   category      String
   stock         Int      @default(0)
+  featured      Boolean  @default(false)
   createdAt     DateTime @default(now())
 }
 
