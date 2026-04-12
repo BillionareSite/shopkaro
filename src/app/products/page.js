@@ -7,8 +7,10 @@ export default function Products() {
   const [loading, setLoading] = useState(true)
   const [category, setCategory] = useState('All')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem('token'))
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {
@@ -32,12 +34,20 @@ export default function Products() {
       >
         <div className="flex items-center justify-between">
           <a href="/" className="text-2xl font-bold tracking-wide">ShopKaro</a>
+
           <div className="hidden md:flex gap-6 text-gray-300 text-sm">
             <a href="/" className="hover:text-white transition">Home</a>
             <a href="/products" className="hover:text-white transition">Products</a>
-            <a href="/auth/login" className="hover:text-white transition">Login</a>
-            <a href="/auth/signup" className="hover:text-white transition">Signup</a>
+            {isLoggedIn ? (
+              <a href="/profile" className="hover:text-white transition">Profile</a>
+            ) : (
+              <>
+                <a href="/auth/login" className="hover:text-white transition">Login</a>
+                <a href="/auth/signup" className="hover:text-white transition">Signup</a>
+              </>
+            )}
           </div>
+
           <a href="/cart" className="hidden md:block">
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -47,6 +57,7 @@ export default function Products() {
               Cart 🛒
             </motion.button>
           </a>
+
           <button
             className="md:hidden text-white text-2xl focus:outline-none"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -54,6 +65,7 @@ export default function Products() {
             {menuOpen ? '✕' : '☰'}
           </button>
         </div>
+
         {menuOpen && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -62,8 +74,14 @@ export default function Products() {
           >
             <a href="/" className="text-gray-300 hover:text-white transition">Home</a>
             <a href="/products" className="text-gray-300 hover:text-white transition">Products</a>
-            <a href="/auth/login" className="text-gray-300 hover:text-white transition">Login</a>
-            <a href="/auth/signup" className="bg-white text-black text-center py-2 rounded-lg font-semibold">Sign Up</a>
+            {isLoggedIn ? (
+              <a href="/profile" className="text-gray-300 hover:text-white transition">Profile</a>
+            ) : (
+              <>
+                <a href="/auth/login" className="text-gray-300 hover:text-white transition">Login</a>
+                <a href="/auth/signup" className="bg-white text-black text-center py-2 rounded-lg font-semibold">Sign Up</a>
+              </>
+            )}
             <a href="/cart" className="border border-gray-700 text-white text-center py-2 rounded-lg hover:border-white transition">Cart 🛒</a>
           </motion.div>
         )}

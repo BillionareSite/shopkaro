@@ -8,8 +8,10 @@ export default function Checkout() {
   const [placing, setPlacing] = useState(false)
   const [ordered, setOrdered] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem('token'))
     const stored = JSON.parse(localStorage.getItem('cart') || '[]')
     setCart(stored)
   }, [])
@@ -25,17 +27,14 @@ export default function Checkout() {
       alert('Your cart is empty!')
       return
     }
-
     setPlacing(true)
     const res = await fetch('/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...form, items: cart, total })
     })
-
     const data = await res.json()
     setPlacing(false)
-
     if (res.ok) {
       localStorage.removeItem('cart')
       setOrdered(true)
@@ -82,8 +81,14 @@ export default function Checkout() {
           <div className="hidden md:flex gap-6 text-gray-300 text-sm">
             <a href="/" className="hover:text-white transition">Home</a>
             <a href="/products" className="hover:text-white transition">Products</a>
-            <a href="/auth/login" className="hover:text-white transition">Login</a>
-            <a href="/auth/signup" className="hover:text-white transition">Signup</a>
+            {isLoggedIn ? (
+              <a href="/profile" className="hover:text-white transition">Profile</a>
+            ) : (
+              <>
+                <a href="/auth/login" className="hover:text-white transition">Login</a>
+                <a href="/auth/signup" className="hover:text-white transition">Signup</a>
+              </>
+            )}
           </div>
           <a href="/cart" className="hidden md:block">
             <motion.button
@@ -109,8 +114,14 @@ export default function Checkout() {
           >
             <a href="/" className="text-gray-300 hover:text-white">Home</a>
             <a href="/products" className="text-gray-300 hover:text-white">Products</a>
-            <a href="/auth/login" className="text-gray-300 hover:text-white">Login</a>
-            <a href="/auth/signup" className="bg-white text-black text-center py-2 rounded-lg font-semibold">Sign Up</a>
+            {isLoggedIn ? (
+              <a href="/profile" className="text-gray-300 hover:text-white">Profile</a>
+            ) : (
+              <>
+                <a href="/auth/login" className="text-gray-300 hover:text-white">Login</a>
+                <a href="/auth/signup" className="bg-white text-black text-center py-2 rounded-lg font-semibold">Sign Up</a>
+              </>
+            )}
             <a href="/cart" className="border border-gray-700 text-white text-center py-2 rounded-lg hover:border-white transition">Cart 🛒</a>
           </motion.div>
         )}
@@ -135,7 +146,6 @@ export default function Checkout() {
           >
             <h3 className="text-lg font-bold mb-6">Delivery Details</h3>
             <div className="space-y-4">
-
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Full Name</label>
                 <input
@@ -146,7 +156,6 @@ export default function Checkout() {
                   className="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
                 />
               </div>
-
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Phone Number</label>
                 <input
@@ -157,7 +166,6 @@ export default function Checkout() {
                   className="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
                 />
               </div>
-
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Full Address</label>
                 <textarea
@@ -168,7 +176,6 @@ export default function Checkout() {
                   className="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition resize-none"
                 />
               </div>
-
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Pincode</label>
                 <input
@@ -179,7 +186,6 @@ export default function Checkout() {
                   className="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
                 />
               </div>
-
             </div>
           </motion.div>
 
@@ -191,7 +197,6 @@ export default function Checkout() {
           >
             <div className="bg-[#111] border border-gray-800 rounded-2xl p-6">
               <h3 className="text-lg font-bold mb-4">Order Summary</h3>
-
               {cart.length === 0 ? (
                 <p className="text-gray-500 text-sm">Your cart is empty.</p>
               ) : (
@@ -199,8 +204,8 @@ export default function Checkout() {
                   {cart.map((item, i) => (
                     <div key={i} className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-[#1a1a1a] rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-                        {item.image ? (
-                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        {item.images?.[0] ? (
+                          <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover" />
                         ) : (
                           <span className="text-xl">🛍️</span>
                         )}
@@ -214,7 +219,6 @@ export default function Checkout() {
                   ))}
                 </div>
               )}
-
               <div className="border-t border-gray-800 mt-4 pt-4 space-y-2">
                 <div className="flex justify-between text-sm text-gray-400">
                   <span>Subtotal</span>
@@ -245,7 +249,6 @@ export default function Checkout() {
               By placing your order, you agree to our Terms & Conditions
             </p>
           </motion.div>
-
         </div>
       </div>
     </main>

@@ -5,8 +5,10 @@ import { motion } from 'framer-motion'
 export default function Cart() {
   const [cart, setCart] = useState([])
   const [menuOpen, setMenuOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem('token'))
     const stored = JSON.parse(localStorage.getItem('cart') || '[]')
     setCart(stored)
   }, [])
@@ -49,8 +51,14 @@ export default function Cart() {
           <div className="hidden md:flex gap-6 text-gray-300 text-sm">
             <a href="/" className="hover:text-white transition">Home</a>
             <a href="/products" className="hover:text-white transition">Products</a>
-            <a href="/auth/login" className="hover:text-white transition">Login</a>
-            <a href="/auth/signup" className="hover:text-white transition">Signup</a>
+            {isLoggedIn ? (
+              <a href="/profile" className="hover:text-white transition">Profile</a>
+            ) : (
+              <>
+                <a href="/auth/login" className="hover:text-white transition">Login</a>
+                <a href="/auth/signup" className="hover:text-white transition">Signup</a>
+              </>
+            )}
           </div>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -74,8 +82,14 @@ export default function Cart() {
           >
             <a href="/" className="text-gray-300 hover:text-white">Home</a>
             <a href="/products" className="text-gray-300 hover:text-white">Products</a>
-            <a href="/auth/login" className="text-gray-300 hover:text-white">Login</a>
-            <a href="/auth/signup" className="bg-white text-black text-center py-2 rounded-lg font-semibold">Sign Up</a>
+            {isLoggedIn ? (
+              <a href="/profile" className="text-gray-300 hover:text-white">Profile</a>
+            ) : (
+              <>
+                <a href="/auth/login" className="text-gray-300 hover:text-white">Login</a>
+                <a href="/auth/signup" className="bg-white text-black text-center py-2 rounded-lg font-semibold">Sign Up</a>
+              </>
+            )}
           </motion.div>
         )}
       </motion.nav>
@@ -121,7 +135,6 @@ export default function Cart() {
                   transition={{ delay: i * 0.05 }}
                   className="bg-[#111] border border-gray-800 rounded-2xl p-4 flex gap-4"
                 >
-                  {/* Image */}
                   <div className="w-20 h-20 bg-[#1a1a1a] rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center">
                     {item.image ? (
                       <img src={item.image} alt={item.name} className="w-full h-full object-cover"/>
@@ -129,8 +142,6 @@ export default function Cart() {
                       <span className="text-2xl">🛍️</span>
                     )}
                   </div>
-
-                  {/* Details */}
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-sm mb-1 truncate">{item.name}</h4>
                     <p className="text-gray-500 text-xs mb-2">{item.category}</p>
@@ -141,8 +152,6 @@ export default function Cart() {
                       )}
                     </div>
                   </div>
-
-                  {/* Quantity and Delete */}
                   <div className="flex flex-col items-end justify-between">
                     <button
                       onClick={() => removeItem(item.id)}
@@ -184,7 +193,6 @@ export default function Cart() {
               className="bg-[#111] border border-gray-800 rounded-2xl p-6 h-fit sticky top-6"
             >
               <h3 className="text-xl font-bold mb-6">Order Summary</h3>
-
               <div className="space-y-3 text-sm mb-6">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Items ({cart.length})</span>
@@ -205,13 +213,11 @@ export default function Cart() {
                   <span>₹{subtotal.toLocaleString()}</span>
                 </div>
               </div>
-
               {savings > 0 && (
                 <p className="text-green-400 text-xs text-center mb-4">
                   🎉 You are saving ₹{savings.toLocaleString()} on this order!
                 </p>
               )}
-
               <a href="/checkout">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -221,7 +227,6 @@ export default function Cart() {
                   Proceed to Checkout →
                 </motion.button>
               </a>
-
               <a href="/products">
                 <button className="w-full mt-3 border border-gray-700 text-white font-semibold py-3 rounded-xl hover:border-white transition text-sm">
                   Continue Shopping

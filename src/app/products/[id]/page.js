@@ -10,8 +10,10 @@ export default function ProductDetail({ params }) {
   const [added, setAdded] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [activeImage, setActiveImage] = useState(0)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem('token'))
     fetch('/api/products/' + id)
       .then(res => res.json())
       .then(data => {
@@ -66,8 +68,14 @@ export default function ProductDetail({ params }) {
           <div className="hidden md:flex gap-6 text-gray-300 text-sm">
             <a href="/" className="hover:text-white transition">Home</a>
             <a href="/products" className="hover:text-white transition">Products</a>
-            <a href="/auth/login" className="hover:text-white transition">Login</a>
-            <a href="/auth/signup" className="hover:text-white transition">Signup</a>
+            {isLoggedIn ? (
+              <a href="/profile" className="hover:text-white transition">Profile</a>
+            ) : (
+              <>
+                <a href="/auth/login" className="hover:text-white transition">Login</a>
+                <a href="/auth/signup" className="hover:text-white transition">Signup</a>
+              </>
+            )}
           </div>
           <a href="/cart" className="hidden md:block">
             <motion.button
@@ -93,8 +101,14 @@ export default function ProductDetail({ params }) {
           >
             <a href="/" className="text-gray-300 hover:text-white">Home</a>
             <a href="/products" className="text-gray-300 hover:text-white">Products</a>
-            <a href="/auth/login" className="text-gray-300 hover:text-white">Login</a>
-            <a href="/auth/signup" className="bg-white text-black text-center py-2 rounded-lg font-semibold">Sign Up</a>
+            {isLoggedIn ? (
+              <a href="/profile" className="text-gray-300 hover:text-white">Profile</a>
+            ) : (
+              <>
+                <a href="/auth/login" className="text-gray-300 hover:text-white">Login</a>
+                <a href="/auth/signup" className="bg-white text-black text-center py-2 rounded-lg font-semibold">Sign Up</a>
+              </>
+            )}
             <a href="/cart" className="border border-gray-700 text-white text-center py-2 rounded-lg hover:border-white transition">Cart 🛒</a>
           </motion.div>
         )}
@@ -117,7 +131,6 @@ export default function ProductDetail({ params }) {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            {/* Main Image */}
             <div className="bg-[#111] border border-gray-800 rounded-2xl overflow-hidden flex items-center justify-center h-72 md:h-96 mb-3">
               {images.length > 0 ? (
                 <motion.img
@@ -133,8 +146,6 @@ export default function ProductDetail({ params }) {
                 <span className="text-8xl">🛍️</span>
               )}
             </div>
-
-            {/* Thumbnail Row */}
             {images.length > 1 && (
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {images.map((img, index) => (

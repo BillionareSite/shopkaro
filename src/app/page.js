@@ -5,8 +5,10 @@ import { motion } from 'framer-motion'
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [featured, setFeatured] = useState([])
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem('token'))
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {
@@ -27,12 +29,20 @@ export default function Home() {
       >
         <div className="flex items-center justify-between">
           <a href="/" className="text-2xl font-bold tracking-wide">ShopKaro</a>
+
           <div className="hidden md:flex gap-6 text-gray-300 text-sm">
             <a href="/" className="hover:text-white transition">Home</a>
             <a href="/products" className="hover:text-white transition">Products</a>
-            <a href="/auth/login" className="hover:text-white transition">Login</a>
-            <a href="/auth/signup" className="hover:text-white transition">Signup</a>
+            {isLoggedIn ? (
+              <a href="/profile" className="hover:text-white transition">Profile</a>
+            ) : (
+              <>
+                <a href="/auth/login" className="hover:text-white transition">Login</a>
+                <a href="/auth/signup" className="hover:text-white transition">Signup</a>
+              </>
+            )}
           </div>
+
           <a href="/cart" className="hidden md:block">
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -42,6 +52,7 @@ export default function Home() {
               Cart 🛒
             </motion.button>
           </a>
+
           <button
             className="md:hidden text-white text-2xl focus:outline-none"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -49,6 +60,7 @@ export default function Home() {
             {menuOpen ? '✕' : '☰'}
           </button>
         </div>
+
         {menuOpen && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -57,8 +69,14 @@ export default function Home() {
           >
             <a href="/" className="text-gray-300 hover:text-white transition">Home</a>
             <a href="/products" className="text-gray-300 hover:text-white transition">Products</a>
-            <a href="/auth/login" className="text-gray-300 hover:text-white transition">Login</a>
-            <a href="/auth/signup" className="bg-white text-black text-center py-2 rounded-lg font-semibold">Sign Up</a>
+            {isLoggedIn ? (
+              <a href="/profile" className="text-gray-300 hover:text-white transition">Profile</a>
+            ) : (
+              <>
+                <a href="/auth/login" className="text-gray-300 hover:text-white transition">Login</a>
+                <a href="/auth/signup" className="bg-white text-black text-center py-2 rounded-lg font-semibold">Sign Up</a>
+              </>
+            )}
             <a href="/cart" className="border border-gray-700 text-white text-center py-2 rounded-lg hover:border-white transition">Cart 🛒</a>
           </motion.div>
         )}
@@ -74,6 +92,7 @@ export default function Home() {
         >
           New Arrivals 🔥
         </motion.span>
+
         <motion.h2
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -82,6 +101,7 @@ export default function Home() {
         >
           Premium Store
         </motion.h2>
+
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -89,6 +109,7 @@ export default function Home() {
           className="text-gray-400 max-w-xl mx-auto mb-8 text-sm md:text-base"
         >
         </motion.p>
+
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
