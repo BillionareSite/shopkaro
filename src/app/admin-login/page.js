@@ -12,19 +12,24 @@ export default function AdminLogin() {
     setLoading(true)
     setError('')
 
-    const res = await fetch('/api/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password })
-    })
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      })
 
-    const data = await res.json()
-    setLoading(false)
+      const data = await res.json()
+      setLoading(false)
 
-    if (res.ok) {
-      window.location.href = '/admin'
-    } else {
-      setError(data.message)
+      if (res.ok) {
+        window.location.href = '/admin'
+      } else {
+        setError(data.message)
+      }
+    } catch (err) {
+      setLoading(false)
+      setError('Error: ' + err.message)
     }
   }
 

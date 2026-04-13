@@ -111,12 +111,23 @@ export default function Admin() {
   return (
     <main className="min-h-screen bg-black text-white">
 
-      {/* Navbar */}
-      <nav className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-        <a href="/" className="text-2xl font-bold">ShopKaro</a>
-        <span className="text-gray-400 text-sm">Admin Dashboard</span>
-        <a href="/products" className="text-sm text-gray-400 hover:text-white transition">View Store</a>
-      </nav>
+{/* Navbar */}
+<nav className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+  <a href="/" className="text-2xl font-bold">ShopKaro</a>
+  <span className="text-gray-400 text-sm">Admin Dashboard</span>
+  <div className="flex items-center gap-4">
+    <a href="/products" className="text-sm text-gray-400 hover:text-white transition">View Store</a>
+    <button
+      onClick={async () => {
+        await fetch('/api/admin/logout', { method: 'POST' })
+        window.location.href = '/admin-login'
+      }}
+      className="text-sm text-red-500 hover:text-red-400 border border-red-900 px-3 py-1 rounded-lg hover:bg-red-500 hover:text-white transition"
+    >
+      Logout
+    </button>
+  </div>
+</nav>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         <motion.h2
