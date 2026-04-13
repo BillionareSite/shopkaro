@@ -13,6 +13,8 @@ export async function POST(req) {
     const response = NextResponse.json({ message: 'Access granted!' }, { status: 200 })
     response.cookies.set('admin_auth', ADMIN_PASSWORD, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7,
       path: '/'
     })
