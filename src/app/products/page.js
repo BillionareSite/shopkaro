@@ -8,6 +8,7 @@ export default function Products() {
   const [category, setCategory] = useState('All')
   const [menuOpen, setMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem('token'))
@@ -20,7 +21,10 @@ export default function Products() {
   }, [])
 
   const categories = ['All', 'Electronics', 'Fashion', 'Home', 'Beauty', 'Sports', 'Books', 'Toys']
-  const filtered = category === 'All' ? products : products.filter(p => p.category === category)
+
+  const filtered = products
+    .filter(p => category === 'All' || p.category === category)
+    .filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -96,6 +100,32 @@ export default function Products() {
           All Products
         </motion.h2>
 
+        {/* Search Bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="relative mb-6"
+        >
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">🔍</span>
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-[#111] border border-gray-700 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition"
+            >
+              ✕
+            </button>
+          )}
+        </motion.div>
+
+        {/* Category Pills */}
         <div className="flex gap-3 overflow-x-auto mb-8 pb-2">
           {categories.map(cat => (
             <button
@@ -112,6 +142,13 @@ export default function Products() {
           ))}
         </div>
 
+        {/* Search result info */}
+        {search && (
+          <p className="text-gray-500 text-sm mb-4">
+            {filtered.length} result{filtered.length !== 1 ? 's' : ''} for "<span className="text-white">{search}</span>"
+          </p>
+        )}
+
         {loading ? (
           <div className="text-center py-20 text-gray-500">Loading products...</div>
         ) : filtered.length === 0 ? (
@@ -120,8 +157,19 @@ export default function Products() {
             animate={{ opacity: 1 }}
             className="text-center py-20"
           >
-            <p className="text-gray-500 text-lg">No products yet!</p>
-            <p className="text-gray-600 text-sm mt-2">Products will appear here once added.</p>
+            <p className="text-4xl mb-4">🔍</p>
+            <p className="text-gray-500 text-lg">No products found!</p>
+            <p className="text-gray-600 text-sm mt-2">
+              {search ? `No results for "${search}". Try a different keyword.` : 'No products in this category yet.'}
+            </p>
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="mt-4 text-white border border-gray-700 px-4 py-2 rounded-lg text-sm hover:border-white transition"
+              >
+                Clear Search
+              </button>
+            )}
           </motion.div>
         ) : (
           <motion.div
