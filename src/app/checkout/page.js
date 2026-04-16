@@ -9,9 +9,25 @@ export default function Checkout() {
   const [ordered, setOrdered] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userEmail, setUserEmail] = useState('')
+  const [userName, setUserName] = useState('')
 
   useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem('token'))
+    const token = localStorage.getItem('token')
+    if (!token) {
+      window.location.href = '/auth/login?redirect=/checkout'
+      return
+    }
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      setIsLoggedIn(true)
+      setUserEmail(payload.email)
+      setUserName(payload.name)
+      setForm(f => ({ ...f, name: payload.name }))
+    } catch {
+      window.location.href = '/auth/login?redirect=/checkout'
+      return
+    }
     const stored = JSON.parse(localStorage.getItem('cart') || '[]')
     setCart(stored)
   }, [])
@@ -31,7 +47,7 @@ export default function Checkout() {
     const res = await fetch('/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, items: cart, total })
+      body: JSON.stringify({ ...form, items: cart, total, email: userEmail })
     })
     const data = await res.json()
     setPlacing(false)
@@ -52,16 +68,28 @@ export default function Checkout() {
       >
         <div className="text-6xl mb-6">🎉</div>
         <h2 className="text-3xl font-bold mb-3">Order Placed!</h2>
-        <p className="text-gray-400 mb-8">Thank you for shopping with ShopKaro. Your order is being processed.</p>
-        <a href="/products">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-white text-black px-8 py-3 rounded-xl font-semibold"
-          >
-            Continue Shopping
-          </motion.button>
-        </a>
+        <p className="text-gray-400 mb-2">Thank you for shopping with ShopKaro.</p>
+        <p className="text-gray-500 text-sm mb-8">You can track your order in your profile.</p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <a href="/profile">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-white text-black px-8 py-3 rounded-xl font-semibold"
+            >
+              View Orders
+            </motion.button>
+          </a>
+          <a href="/products">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="border border-gray-700 text-white px-8 py-3 rounded-xl font-semibold hover:border-white transition"
+            >
+              Continue Shopping
+            </motion.button>
+          </a>
+        </div>
       </motion.div>
     </main>
   )
@@ -81,14 +109,7 @@ export default function Checkout() {
           <div className="hidden md:flex gap-6 text-gray-300 text-sm">
             <a href="/" className="hover:text-white transition">Home</a>
             <a href="/products" className="hover:text-white transition">Products</a>
-            {isLoggedIn ? (
-              <a href="/profile" className="hover:text-white transition">Profile</a>
-            ) : (
-              <>
-                <a href="/auth/login" className="hover:text-white transition">Login</a>
-                <a href="/auth/signup" className="hover:text-white transition">Signup</a>
-              </>
-            )}
+            <a href="/profile" className="hover:text-white transition">Profile</a>
           </div>
           <a href="/cart" className="hidden md:block">
             <motion.button
@@ -114,14 +135,7 @@ export default function Checkout() {
           >
             <a href="/" className="text-gray-300 hover:text-white">Home</a>
             <a href="/products" className="text-gray-300 hover:text-white">Products</a>
-            {isLoggedIn ? (
-              <a href="/profile" className="text-gray-300 hover:text-white">Profile</a>
-            ) : (
-              <>
-                <a href="/auth/login" className="text-gray-300 hover:text-white">Login</a>
-                <a href="/auth/signup" className="bg-white text-black text-center py-2 rounded-lg font-semibold">Sign Up</a>
-              </>
-            )}
+            <a href="/profile" className="text-gray-300 hover:text-white">Profile</a>
             <a href="/cart" className="border border-gray-700 text-white text-center py-2 rounded-lg hover:border-white transition">Cart 🛒</a>
           </motion.div>
         )}
@@ -156,6 +170,18 @@ export default function Checkout() {
                   className="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
                 />
               </div>
+
+              {/* Show email (readonly) */}
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Email</label>
+                <input
+                  type="email"
+                  value={userEmail}
+                  readOnly
+                  className="w-full bg-[#1a1a1a] border border-gray-800 rounded-xl px-4 py-3 text-sm text-gray-500 cursor-not-allowed"
+                />
+              </div>
+
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Phone Number</label>
                 <input

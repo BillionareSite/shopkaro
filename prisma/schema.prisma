@@ -33,6 +33,7 @@ model Order {
   phone     String
   address   String
   pincode   String
+  email     String   @default("")
   items     Json
   total     Float
   status    String   @default("pending")

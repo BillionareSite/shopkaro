@@ -20,7 +20,9 @@ export default function Login() {
     setLoading(false)
     if (res.ok) {
       localStorage.setItem('token', data.token)
-      window.location.href = '/'
+      const params = new URLSearchParams(window.location.search)
+      const redirect = params.get('redirect') || '/'
+      window.location.href = redirect
     }
   }
 
