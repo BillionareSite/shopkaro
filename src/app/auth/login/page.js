@@ -10,6 +10,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setMessage('')
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -23,6 +24,8 @@ export default function Login() {
       const params = new URLSearchParams(window.location.search)
       const redirect = params.get('redirect') || '/'
       window.location.href = redirect
+    } else if (data.unverified) {
+      window.location.href = '/auth/verify?email=' + encodeURIComponent(data.email)
     }
   }
 
@@ -62,6 +65,7 @@ export default function Login() {
                 placeholder="you@email.com"
                 className="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
+                required
               />
             </div>
             <div>
@@ -71,6 +75,7 @@ export default function Login() {
                 placeholder="••••••••"
                 className="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
+                required
               />
             </div>
 
@@ -89,7 +94,9 @@ export default function Login() {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className={`text-center text-sm mt-4 ${message.includes('success') ? 'text-green-400' : 'text-red-400'}`}
+              className={`text-center text-sm mt-4 ${
+                message.includes('success') ? 'text-green-400' : 'text-red-400'
+              }`}
             >
               {message}
             </motion.p>

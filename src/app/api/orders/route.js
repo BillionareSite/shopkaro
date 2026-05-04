@@ -10,17 +10,25 @@ export async function POST(req) {
       return NextResponse.json({ message: 'All fields are required' }, { status: 400 })
     }
 
+    // Create the order
     const order = await prisma.order.create({
-      data: {
-        name,
-        phone,
-        address,
-        pincode,
-        items,
-        total,
-        email: email || ''
-      }
+      data: { name, phone, address, pincode, items, total, email: email || '' }
     })
+
+    // Decrease stock for each item
+    for (const item of items) {
+      const product = await prisma.product.findUnique({
+        where: { id: item.id }
+      })
+
+      if (product) {
+        const newStock = Math.max(0, product.stock - item.quantity)
+        await prisma.product.update({
+          where: { id: item.id },
+          data: { stock: newStock }
+        })
+      }
+    }
 
     return NextResponse.json({ message: 'Order placed!', order }, { status: 201 })
   } catch (error) {

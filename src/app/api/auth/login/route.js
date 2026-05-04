@@ -16,6 +16,14 @@ export async function POST(req) {
       return NextResponse.json({ message: 'Invalid email or password!' }, { status: 400 })
     }
 
+    if (!user.verified) {
+      return NextResponse.json({
+        message: 'Please verify your email first!',
+        unverified: true,
+        email: user.email
+      }, { status: 403 })
+    }
+
     const isMatch = await bcrypt.compare(password, user.password)
     if (!isMatch) {
       return NextResponse.json({ message: 'Invalid email or password!' }, { status: 400 })

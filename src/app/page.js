@@ -1,14 +1,12 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import Navbar from './components/Navbar'
 
 export default function Home() {
-  const [menuOpen, setMenuOpen] = useState(false)
   const [featured, setFeatured] = useState([])
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem('token'))
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {
@@ -20,67 +18,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-black text-white overflow-hidden">
 
-      {/* Navbar */}
-      <motion.nav
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="border-b border-gray-800 px-6 py-4"
-      >
-        <div className="flex items-center justify-between">
-          <a href="/" className="text-2xl font-bold tracking-wide">ShopKaro</a>
-
-          <div className="hidden md:flex gap-6 text-gray-300 text-sm">
-            <a href="/" className="hover:text-white transition">Home</a>
-            <a href="/products" className="hover:text-white transition">Products</a>
-            {isLoggedIn ? (
-              <a href="/profile" className="hover:text-white transition">Profile</a>
-            ) : (
-              <>
-                <a href="/auth/login" className="hover:text-white transition">Login</a>
-                <a href="/auth/signup" className="hover:text-white transition">Signup</a>
-              </>
-            )}
-          </div>
-
-          <a href="/cart" className="hidden md:block">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-white text-black px-4 py-2 rounded-lg font-semibold text-sm"
-            >
-              Cart 🛒
-            </motion.button>
-          </a>
-
-          <button
-            className="md:hidden text-white text-2xl focus:outline-none"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            {menuOpen ? '✕' : '☰'}
-          </button>
-        </div>
-
-        {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="md:hidden mt-4 flex flex-col gap-4 border-t border-gray-800 pt-4 text-sm"
-          >
-            <a href="/" className="text-gray-300 hover:text-white transition">Home</a>
-            <a href="/products" className="text-gray-300 hover:text-white transition">Products</a>
-            {isLoggedIn ? (
-              <a href="/profile" className="text-gray-300 hover:text-white transition">Profile</a>
-            ) : (
-              <>
-                <a href="/auth/login" className="text-gray-300 hover:text-white transition">Login</a>
-                <a href="/auth/signup" className="bg-white text-black text-center py-2 rounded-lg font-semibold">Sign Up</a>
-              </>
-            )}
-            <a href="/cart" className="border border-gray-700 text-white text-center py-2 rounded-lg hover:border-white transition">Cart 🛒</a>
-          </motion.div>
-        )}
-      </motion.nav>
+      <Navbar />
 
       {/* Hero */}
       <section className="text-center py-20 px-6">
@@ -92,7 +30,6 @@ export default function Home() {
         >
           New Arrivals 🔥
         </motion.span>
-
         <motion.h2
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -101,7 +38,6 @@ export default function Home() {
         >
           Premium Store
         </motion.h2>
-
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -109,7 +45,6 @@ export default function Home() {
           className="text-gray-400 max-w-xl mx-auto mb-8 text-sm md:text-base"
         >
         </motion.p>
-
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

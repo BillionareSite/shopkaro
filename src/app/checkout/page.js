@@ -1,16 +1,14 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import Navbar from '../components/Navbar'
 
 export default function Checkout() {
   const [cart, setCart] = useState([])
   const [form, setForm] = useState({ name: '', phone: '', address: '', pincode: '' })
   const [placing, setPlacing] = useState(false)
   const [ordered, setOrdered] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userEmail, setUserEmail] = useState('')
-  const [userName, setUserName] = useState('')
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -20,9 +18,7 @@ export default function Checkout() {
     }
     try {
       const payload = JSON.parse(atob(token.split('.')[1]))
-      setIsLoggedIn(true)
       setUserEmail(payload.email)
-      setUserName(payload.name)
       setForm(f => ({ ...f, name: payload.name }))
     } catch {
       window.location.href = '/auth/login?redirect=/checkout'
@@ -53,6 +49,7 @@ export default function Checkout() {
     setPlacing(false)
     if (res.ok) {
       localStorage.removeItem('cart')
+      window.dispatchEvent(new Event('storage'))
       setOrdered(true)
     } else {
       alert(data.message)
@@ -97,49 +94,7 @@ export default function Checkout() {
   return (
     <main className="min-h-screen bg-black text-white">
 
-      {/* Navbar */}
-      <motion.nav
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="border-b border-gray-800 px-6 py-4"
-      >
-        <div className="flex items-center justify-between">
-          <a href="/" className="text-2xl font-bold tracking-wide">ShopKaro</a>
-          <div className="hidden md:flex gap-6 text-gray-300 text-sm">
-            <a href="/" className="hover:text-white transition">Home</a>
-            <a href="/products" className="hover:text-white transition">Products</a>
-            <a href="/profile" className="hover:text-white transition">Profile</a>
-          </div>
-          <a href="/cart" className="hidden md:block">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-white text-black px-4 py-2 rounded-lg font-semibold text-sm"
-            >
-              Cart 🛒
-            </motion.button>
-          </a>
-          <button
-            className="md:hidden text-white text-2xl"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            {menuOpen ? '✕' : '☰'}
-          </button>
-        </div>
-        {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="md:hidden mt-4 flex flex-col gap-4 border-t border-gray-800 pt-4 text-sm"
-          >
-            <a href="/" className="text-gray-300 hover:text-white">Home</a>
-            <a href="/products" className="text-gray-300 hover:text-white">Products</a>
-            <a href="/profile" className="text-gray-300 hover:text-white">Profile</a>
-            <a href="/cart" className="border border-gray-700 text-white text-center py-2 rounded-lg hover:border-white transition">Cart 🛒</a>
-          </motion.div>
-        )}
-      </motion.nav>
+      <Navbar />
 
       <div className="max-w-5xl mx-auto px-6 py-8 pb-16">
         <motion.h2
@@ -170,8 +125,6 @@ export default function Checkout() {
                   className="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
                 />
               </div>
-
-              {/* Show email (readonly) */}
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Email</label>
                 <input
@@ -181,7 +134,6 @@ export default function Checkout() {
                   className="w-full bg-[#1a1a1a] border border-gray-800 rounded-xl px-4 py-3 text-sm text-gray-500 cursor-not-allowed"
                 />
               </div>
-
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Phone Number</label>
                 <input

@@ -108,27 +108,31 @@ export default function Admin() {
     fetchProducts()
   }
 
+  const lowStockProducts = products.filter(p => p.stock > 0 && p.stock <= 5)
+  const outOfStockProducts = products.filter(p => p.stock === 0)
+
   return (
     <main className="min-h-screen bg-black text-white">
 
       {/* Navbar */}
       <nav className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-        <a href="/" className="text-2xl font-bold">ShopKaro</a>
-        <span className="text-gray-400 text-sm">Admin Dashboard</span>
-        <div className="flex items-center gap-4">
-          <a href="/admin/orders" className="text-sm text-gray-400 hover:text-white transition">📦 Orders</a>
-          <a href="/products" className="text-sm text-gray-400 hover:text-white transition">View Store</a>
-          <button
-            onClick={async () => {
-              await fetch('/api/admin/logout', { method: 'POST' })
-              window.location.href = '/admin-login'
-            }}
-            className="text-sm border border-red-900 text-red-500 px-3 py-1 rounded-lg hover:bg-red-500 hover:text-white transition"
-          >
-            Logout
-          </button>
-        </div>
-      </nav>
+  <a href="/" className="text-2xl font-bold">ShopKaro</a>
+  <span className="text-gray-400 text-sm">Admin Dashboard</span>
+  <div className="flex items-center gap-4">
+    <a href="/admin/stats" className="text-sm text-gray-400 hover:text-white transition">📊 Stats</a>
+    <a href="/admin/orders" className="text-sm text-gray-400 hover:text-white transition">📦 Orders</a>
+    <a href="/products" className="text-sm text-gray-400 hover:text-white transition">View Store</a>
+    <button
+      onClick={async () => {
+        await fetch('/api/admin/logout', { method: 'POST' })
+        window.location.href = '/admin-login'
+      }}
+      className="text-sm border border-red-900 text-red-500 px-3 py-1 rounded-lg hover:bg-red-500 hover:text-white transition"
+    >
+      Logout
+    </button>
+  </div>
+</nav>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         <motion.h2
@@ -138,6 +142,44 @@ export default function Admin() {
         >
           Admin Dashboard
         </motion.h2>
+
+        {/* Stock Warnings */}
+        {(lowStockProducts.length > 0 || outOfStockProducts.length > 0) && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 space-y-3"
+          >
+            {outOfStockProducts.length > 0 && (
+              <div className="bg-red-500/10 border border-red-900 rounded-2xl p-4">
+                <p className="text-red-400 font-semibold text-sm mb-2">
+                  🚫 Out of Stock ({outOfStockProducts.length} product{outOfStockProducts.length > 1 ? 's' : ''})
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {outOfStockProducts.map(p => (
+                    <span key={p.id} className="bg-red-500/20 text-red-300 text-xs px-3 py-1 rounded-full border border-red-800">
+                      {p.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {lowStockProducts.length > 0 && (
+              <div className="bg-yellow-500/10 border border-yellow-900 rounded-2xl p-4">
+                <p className="text-yellow-400 font-semibold text-sm mb-2">
+                  ⚠️ Low Stock ({lowStockProducts.length} product{lowStockProducts.length > 1 ? 's' : ''})
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {lowStockProducts.map(p => (
+                    <span key={p.id} className="bg-yellow-500/20 text-yellow-300 text-xs px-3 py-1 rounded-full border border-yellow-800">
+                      {p.name} — {p.stock} left
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
 
         <div className="grid md:grid-cols-2 gap-8">
 
@@ -318,7 +360,13 @@ export default function Admin() {
                 {products.map(product => (
                   <div
                     key={product.id}
-                    className="flex items-center gap-3 bg-[#1a1a1a] border border-gray-800 rounded-xl p-3"
+                    className={`flex items-center gap-3 border rounded-xl p-3 ${
+                      product.stock === 0
+                        ? 'bg-red-500/5 border-red-900'
+                        : product.stock <= 5
+                        ? 'bg-yellow-500/5 border-yellow-900'
+                        : 'bg-[#1a1a1a] border-gray-800'
+                    }`}
                   >
                     <div className="w-12 h-12 bg-[#222] rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
                       {product.images?.[0] ? (
@@ -330,6 +378,15 @@ export default function Admin() {
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm truncate">{product.name}</p>
                       <p className="text-gray-400 text-xs">₹{product.price} · {product.category}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        {product.stock === 0 ? (
+                          <span className="text-xs text-red-400 font-semibold">🚫 Out of Stock</span>
+                        ) : product.stock <= 5 ? (
+                          <span className="text-xs text-yellow-400 font-semibold">⚠️ Low Stock — {product.stock} left</span>
+                        ) : (
+                          <span className="text-xs text-green-400">✓ In Stock — {product.stock}</span>
+                        )}
+                      </div>
                       <p className="text-xs mt-1">
                         {product.featured
                           ? <span className="text-yellow-400">⭐ Featured</span>

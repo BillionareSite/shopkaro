@@ -1,14 +1,12 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import Navbar from '../components/Navbar'
 
 export default function Cart() {
   const [cart, setCart] = useState([])
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem('token'))
     const stored = JSON.parse(localStorage.getItem('cart') || '[]')
     setCart(stored)
   }, [])
@@ -20,17 +18,20 @@ export default function Cart() {
     )
     setCart(updated)
     localStorage.setItem('cart', JSON.stringify(updated))
+    window.dispatchEvent(new Event('storage'))
   }
 
   const removeItem = (id) => {
     const updated = cart.filter(item => item.id !== id)
     setCart(updated)
     localStorage.setItem('cart', JSON.stringify(updated))
+    window.dispatchEvent(new Event('storage'))
   }
 
   const clearCart = () => {
     setCart([])
     localStorage.removeItem('cart')
+    window.dispatchEvent(new Event('storage'))
   }
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
@@ -39,60 +40,7 @@ export default function Cart() {
   return (
     <main className="min-h-screen bg-black text-white">
 
-      {/* Navbar */}
-      <motion.nav
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="border-b border-gray-800 px-6 py-4"
-      >
-        <div className="flex items-center justify-between">
-          <a href="/" className="text-2xl font-bold tracking-wide">ShopKaro</a>
-          <div className="hidden md:flex gap-6 text-gray-300 text-sm">
-            <a href="/" className="hover:text-white transition">Home</a>
-            <a href="/products" className="hover:text-white transition">Products</a>
-            {isLoggedIn ? (
-              <a href="/profile" className="hover:text-white transition">Profile</a>
-            ) : (
-              <>
-                <a href="/auth/login" className="hover:text-white transition">Login</a>
-                <a href="/auth/signup" className="hover:text-white transition">Signup</a>
-              </>
-            )}
-          </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="hidden md:block bg-white text-black px-4 py-2 rounded-lg font-semibold text-sm"
-          >
-            Cart 🛒 {cart.length > 0 && `(${cart.length})`}
-          </motion.button>
-          <button
-            className="md:hidden text-white text-2xl"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            {menuOpen ? '✕' : '☰'}
-          </button>
-        </div>
-        {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="md:hidden mt-4 flex flex-col gap-4 border-t border-gray-800 pt-4 text-sm"
-          >
-            <a href="/" className="text-gray-300 hover:text-white">Home</a>
-            <a href="/products" className="text-gray-300 hover:text-white">Products</a>
-            {isLoggedIn ? (
-              <a href="/profile" className="text-gray-300 hover:text-white">Profile</a>
-            ) : (
-              <>
-                <a href="/auth/login" className="text-gray-300 hover:text-white">Login</a>
-                <a href="/auth/signup" className="bg-white text-black text-center py-2 rounded-lg font-semibold">Sign Up</a>
-              </>
-            )}
-          </motion.div>
-        )}
-      </motion.nav>
+      <Navbar />
 
       <div className="max-w-5xl mx-auto px-6 py-8">
         <motion.h2
@@ -124,8 +72,6 @@ export default function Cart() {
           </motion.div>
         ) : (
           <div className="grid md:grid-cols-3 gap-8">
-
-            {/* Cart Items */}
             <div className="md:col-span-2 space-y-4">
               {cart.map((item, i) => (
                 <motion.div
@@ -136,8 +82,8 @@ export default function Cart() {
                   className="bg-[#111] border border-gray-800 rounded-2xl p-4 flex gap-4"
                 >
                   <div className="w-20 h-20 bg-[#1a1a1a] rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center">
-                    {item.image ? (
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover"/>
+                    {item.images?.[0] ? (
+                      <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover"/>
                     ) : (
                       <span className="text-2xl">🛍️</span>
                     )}
@@ -156,28 +102,21 @@ export default function Cart() {
                     <button
                       onClick={() => removeItem(item.id)}
                       className="text-red-500 hover:text-red-400 text-sm"
-                    >
-                      ✕
-                    </button>
+                    >✕</button>
                     <div className="flex items-center gap-2 bg-[#1a1a1a] border border-gray-700 rounded-lg px-3 py-1">
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
                         className="text-gray-400 hover:text-white font-bold"
-                      >
-                        −
-                      </button>
+                      >−</button>
                       <span className="text-sm font-semibold w-5 text-center">{item.quantity}</span>
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
                         className="text-gray-400 hover:text-white font-bold"
-                      >
-                        +
-                      </button>
+                      >+</button>
                     </div>
                   </div>
                 </motion.div>
               ))}
-
               <button
                 onClick={clearCart}
                 className="text-red-500 hover:text-red-400 text-sm transition"
@@ -186,7 +125,6 @@ export default function Cart() {
               </button>
             </div>
 
-            {/* Order Summary */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}

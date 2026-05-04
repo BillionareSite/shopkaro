@@ -16,14 +16,16 @@ export default function Signup() {
       body: JSON.stringify(form),
     })
     const data = await res.json()
-    setMessage(data.message)
     setLoading(false)
+    setMessage(data.message)
+    if (res.ok && data.redirect) {
+      window.location.href = '/auth/verify?email=' + encodeURIComponent(form.email)
+    }
   }
 
   return (
     <main className="min-h-screen bg-black text-white flex flex-col">
 
-      {/* Navbar */}
       <motion.nav
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -37,7 +39,6 @@ export default function Signup() {
         </div>
       </motion.nav>
 
-      {/* Form */}
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -46,16 +47,17 @@ export default function Signup() {
           className="w-full max-w-md bg-[#111] border border-gray-800 rounded-2xl p-8"
         >
           <h2 className="text-3xl font-bold mb-2">Create Account</h2>
-          <p className="text-gray-400 text-sm mb-8">Join ShopKaro and start shopping</p>
+          <p className="text-gray-400 text-sm mb-8">Join ShopKaro today</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-sm text-gray-400 mb-1 block">Full Name</label>
               <input
                 type="text"
-                placeholder="Your name"
+                placeholder="Rahul Sharma"
                 className="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
+                required
               />
             </div>
             <div>
@@ -65,6 +67,7 @@ export default function Signup() {
                 placeholder="you@email.com"
                 className="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
+                required
               />
             </div>
             <div>
@@ -74,6 +77,7 @@ export default function Signup() {
                 placeholder="••••••••"
                 className="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
+                required
               />
             </div>
 
@@ -84,7 +88,7 @@ export default function Signup() {
               disabled={loading}
               className="w-full bg-white text-black font-semibold py-3 rounded-xl hover:bg-gray-100 transition mt-2"
             >
-              {loading ? 'Creating account...' : 'Sign Up'}
+              {loading ? 'Sending OTP...' : 'Create Account'}
             </motion.button>
           </form>
 
@@ -92,7 +96,11 @@ export default function Signup() {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className={`text-center text-sm mt-4 ${message.includes('success') ? 'text-green-400' : 'text-red-400'}`}
+              className={`text-center text-sm mt-4 ${
+                message.includes('OTP') || message.includes('sent')
+                  ? 'text-green-400'
+                  : 'text-red-400'
+              }`}
             >
               {message}
             </motion.p>

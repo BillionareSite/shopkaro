@@ -1,17 +1,15 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import Navbar from '../components/Navbar'
 
 export default function Products() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [category, setCategory] = useState('All')
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [search, setSearch] = useState('')
 
   useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem('token'))
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {
@@ -21,7 +19,6 @@ export default function Products() {
   }, [])
 
   const categories = ['All', 'Electronics', 'Fashion', 'Home', 'Beauty', 'Sports', 'Books', 'Toys']
-
   const filtered = products
     .filter(p => category === 'All' || p.category === category)
     .filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
@@ -29,67 +26,7 @@ export default function Products() {
   return (
     <main className="min-h-screen bg-black text-white">
 
-      {/* Navbar */}
-      <motion.nav
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="border-b border-gray-800 px-6 py-4"
-      >
-        <div className="flex items-center justify-between">
-          <a href="/" className="text-2xl font-bold tracking-wide">ShopKaro</a>
-
-          <div className="hidden md:flex gap-6 text-gray-300 text-sm">
-            <a href="/" className="hover:text-white transition">Home</a>
-            <a href="/products" className="hover:text-white transition">Products</a>
-            {isLoggedIn ? (
-              <a href="/profile" className="hover:text-white transition">Profile</a>
-            ) : (
-              <>
-                <a href="/auth/login" className="hover:text-white transition">Login</a>
-                <a href="/auth/signup" className="hover:text-white transition">Signup</a>
-              </>
-            )}
-          </div>
-
-          <a href="/cart" className="hidden md:block">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-white text-black px-4 py-2 rounded-lg font-semibold text-sm"
-            >
-              Cart 🛒
-            </motion.button>
-          </a>
-
-          <button
-            className="md:hidden text-white text-2xl focus:outline-none"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            {menuOpen ? '✕' : '☰'}
-          </button>
-        </div>
-
-        {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="md:hidden mt-4 flex flex-col gap-4 border-t border-gray-800 pt-4 text-sm"
-          >
-            <a href="/" className="text-gray-300 hover:text-white transition">Home</a>
-            <a href="/products" className="text-gray-300 hover:text-white transition">Products</a>
-            {isLoggedIn ? (
-              <a href="/profile" className="text-gray-300 hover:text-white transition">Profile</a>
-            ) : (
-              <>
-                <a href="/auth/login" className="text-gray-300 hover:text-white transition">Login</a>
-                <a href="/auth/signup" className="bg-white text-black text-center py-2 rounded-lg font-semibold">Sign Up</a>
-              </>
-            )}
-            <a href="/cart" className="border border-gray-700 text-white text-center py-2 rounded-lg hover:border-white transition">Cart 🛒</a>
-          </motion.div>
-        )}
-      </motion.nav>
+      <Navbar />
 
       <div className="px-6 py-8">
         <motion.h2
@@ -142,7 +79,6 @@ export default function Products() {
           ))}
         </div>
 
-        {/* Search result info */}
         {search && (
           <p className="text-gray-500 text-sm mb-4">
             {filtered.length} result{filtered.length !== 1 ? 's' : ''} for "<span className="text-white">{search}</span>"
@@ -192,18 +128,27 @@ export default function Products() {
                 whileHover={{ scale: 1.03 }}
                 className="bg-[#111] border border-gray-800 rounded-xl p-4 cursor-pointer block"
               >
+                {/* Image with Out of Stock overlay */}
                 <div className="relative bg-[#1a1a1a] h-36 md:h-44 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                   {product.images?.[0] ? (
                     <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover"/>
                   ) : (
                     <span className="text-4xl">🛍️</span>
                   )}
-                  {product.originalPrice > product.price && (
+                  {product.originalPrice > product.price && product.stock > 0 && (
                     <span className="absolute top-2 left-2 bg-white text-black text-xs font-bold px-2 py-1 rounded-full">
                       {Math.round((1 - product.price / product.originalPrice) * 100)}% off
                     </span>
                   )}
+                  {product.stock === 0 && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                      <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                        Out of Stock
+                      </span>
+                    </div>
+                  )}
                 </div>
+
                 <h4 className="font-semibold text-sm mb-1">{product.name}</h4>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-sm">₹{product.price}</span>
@@ -211,12 +156,19 @@ export default function Products() {
                     <span className="text-gray-600 text-xs line-through">₹{product.originalPrice}</span>
                   )}
                 </div>
+
+                {/* Button */}
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="mt-3 w-full bg-white text-black text-sm py-2 rounded-lg font-semibold"
+                  whileHover={{ scale: product.stock === 0 ? 1 : 1.05 }}
+                  whileTap={{ scale: product.stock === 0 ? 1 : 0.95 }}
+                  disabled={product.stock === 0}
+                  className={`mt-3 w-full text-sm py-2 rounded-lg font-semibold transition ${
+                    product.stock === 0
+                      ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                      : 'bg-white text-black hover:bg-gray-100'
+                  }`}
                 >
-                  View Product
+                  {product.stock === 0 ? 'Out of Stock' : 'View Product'}
                 </motion.button>
               </motion.a>
             ))}
