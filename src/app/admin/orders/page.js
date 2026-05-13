@@ -6,6 +6,8 @@ export default function AdminOrders() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(null)
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('All')
 
   useEffect(() => {
     fetchOrders()
@@ -38,6 +40,19 @@ export default function AdminOrders() {
     return 'text-yellow-400 bg-yellow-500/20 border-yellow-800'
   }
 
+  const filtered = orders.filter(order => {
+    const matchesSearch =
+      order.id.toLowerCase().includes(search.toLowerCase()) ||
+      order.id.slice(-8).toUpperCase().includes(search.toUpperCase()) ||
+      order.name.toLowerCase().includes(search.toLowerCase()) ||
+      order.email.toLowerCase().includes(search.toLowerCase()) ||
+      order.phone.includes(search)
+
+    const matchesStatus = statusFilter === 'All' || order.status === statusFilter
+
+    return matchesSearch && matchesStatus
+  })
+
   return (
     <main className="min-h-screen bg-black text-white">
 
@@ -47,6 +62,8 @@ export default function AdminOrders() {
         <span className="text-gray-400 text-sm">Admin — Orders</span>
         <div className="flex items-center gap-4">
           <a href="/admin" className="text-sm text-gray-400 hover:text-white transition">← Dashboard</a>
+          <a href="/admin/stats" className="text-sm text-gray-400 hover:text-white transition">📊 Stats</a>
+          <a href="/admin/tickets" className="text-sm text-gray-400 hover:text-white transition">🎧 Support</a>
           <button
             onClick={async () => {
               await fetch('/api/admin/logout', { method: 'POST' })
@@ -79,16 +96,75 @@ export default function AdminOrders() {
           </div>
         </motion.div>
 
+        {/* Search and Filter */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          {/* Search Bar */}
+          <div className="relative flex-1">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
+            <input
+              type="text"
+              placeholder="Search by Order ID, name, email or phone..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-[#111] border border-gray-700 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Status Filter */}
+          <div className="flex gap-2 flex-wrap">
+            {['All', 'pending', 'confirmed', 'delivered', 'cancelled'].map(status => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium border transition ${
+                  statusFilter === status
+                    ? status === 'delivered' ? 'bg-green-500 text-white border-green-500'
+                    : status === 'confirmed' ? 'bg-blue-500 text-white border-blue-500'
+                    : status === 'cancelled' ? 'bg-red-500 text-white border-red-500'
+                    : status === 'pending' ? 'bg-yellow-500 text-black border-yellow-500'
+                    : 'bg-white text-black border-white'
+                    : 'border-gray-700 text-gray-400 hover:border-white hover:text-white'
+                }`}
+              >
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Results count */}
+        {(search || statusFilter !== 'All') && (
+          <p className="text-gray-500 text-sm mb-4">
+            Showing {filtered.length} of {orders.length} orders
+          </p>
+        )}
+
         {loading ? (
           <p className="text-gray-500 text-center py-20">Loading orders...</p>
-        ) : orders.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-4xl mb-4">📦</p>
-            <p className="text-gray-500">No orders yet!</p>
+            <p className="text-gray-500">No orders found!</p>
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="mt-4 text-white border border-gray-700 px-4 py-2 rounded-lg text-sm hover:border-white transition"
+              >
+                Clear Search
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
-            {orders.map((order, i) => (
+            {filtered.map((order, i) => (
               <motion.div
                 key={order.id}
                 initial={{ opacity: 0, y: 20 }}

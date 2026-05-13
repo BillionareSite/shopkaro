@@ -32,9 +32,11 @@ export default function Navbar() {
       <div className="flex items-center justify-between">
         <a href="/" className="text-2xl font-bold tracking-wide">ShopKaro</a>
 
+        {/* Desktop Menu */}
         <div className="hidden md:flex gap-6 text-gray-300 text-sm">
           <a href="/" className="hover:text-white transition">Home</a>
           <a href="/products" className="hover:text-white transition">Products</a>
+          <a href="/help" className="hover:text-white transition">Help</a>
           {isLoggedIn ? (
             <a href="/profile" className="hover:text-white transition">Profile</a>
           ) : (
@@ -45,6 +47,7 @@ export default function Navbar() {
           )}
         </div>
 
+        {/* Cart Button */}
         <a href="/cart" className="hidden md:block relative">
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -60,6 +63,7 @@ export default function Navbar() {
           </motion.button>
         </a>
 
+        {/* Mobile Hamburger */}
         <button
           className="md:hidden text-white text-2xl focus:outline-none"
           onClick={() => setMenuOpen(!menuOpen)}
@@ -68,6 +72,7 @@ export default function Navbar() {
         </button>
       </div>
 
+      {/* Mobile Menu */}
       {menuOpen && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -76,6 +81,7 @@ export default function Navbar() {
         >
           <a href="/" className="text-gray-300 hover:text-white transition">Home</a>
           <a href="/products" className="text-gray-300 hover:text-white transition">Products</a>
+          <a href="/help" className="text-gray-300 hover:text-white transition">Help 🎧</a>
           {isLoggedIn ? (
             <a href="/profile" className="text-gray-300 hover:text-white transition">Profile</a>
           ) : (
