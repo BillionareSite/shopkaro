@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import config from '@/lib/config'
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -10,13 +11,13 @@ const transporter = nodemailer.createTransport({
 
 export async function sendOTPEmail(email, otp, name) {
   await transporter.sendMail({
-    from: `"ShopKaro" <${process.env.GMAIL_USER}>`,
+    from: `"${config.brandName}" <${process.env.GMAIL_USER}>`,
     to: email,
-    subject: 'Verify your ShopKaro account',
+    subject: `Verify your ${config.brandName} account`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; background: #000; color: #fff; padding: 40px; border-radius: 16px;">
-        <h1 style="font-size: 28px; font-weight: bold; margin-bottom: 8px;">ShopKaro 🛍️</h1>
-        <p style="color: #888; margin-bottom: 32px;">Your Premium Store</p>
+        <h1 style="font-size: 28px; font-weight: bold; margin-bottom: 8px;">${config.brandName} 🛍️</h1>
+        <p style="color: #888; margin-bottom: 32px;">${config.tagline}</p>
         <h2 style="font-size: 20px; margin-bottom: 16px;">Hi ${name}! 👋</h2>
         <p style="color: #ccc; margin-bottom: 24px;">Thanks for signing up! Use the OTP below to verify your account:</p>
         <div style="background: #111; border: 1px solid #333; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
@@ -24,7 +25,7 @@ export async function sendOTPEmail(email, otp, name) {
           <h1 style="font-size: 48px; font-weight: bold; letter-spacing: 12px; margin: 0;">${otp}</h1>
           <p style="color: #888; font-size: 12px; margin-top: 12px;">Valid for 10 minutes</p>
         </div>
-        <p style="color: #666; font-size: 12px;">If you didn't create an account on ShopKaro, please ignore this email.</p>
+        <p style="color: #666; font-size: 12px;">If you didn't create an account on ${config.brandName}, please ignore this email.</p>
       </div>
     `
   })
@@ -32,13 +33,13 @@ export async function sendOTPEmail(email, otp, name) {
 
 export async function sendPasswordResetEmail(email, otp, name) {
   await transporter.sendMail({
-    from: `"ShopKaro" <${process.env.GMAIL_USER}>`,
+    from: `"${config.brandName}" <${process.env.GMAIL_USER}>`,
     to: email,
-    subject: 'Reset your ShopKaro password',
+    subject: `Reset your ${config.brandName} password`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; background: #000; color: #fff; padding: 40px; border-radius: 16px;">
-        <h1 style="font-size: 28px; font-weight: bold; margin-bottom: 8px;">ShopKaro 🛍️</h1>
-        <p style="color: #888; margin-bottom: 32px;">Your Premium Store</p>
+        <h1 style="font-size: 28px; font-weight: bold; margin-bottom: 8px;">${config.brandName} 🛍️</h1>
+        <p style="color: #888; margin-bottom: 32px;">${config.tagline}</p>
         <h2 style="font-size: 20px; margin-bottom: 16px;">Hi ${name}! 👋</h2>
         <p style="color: #ccc; margin-bottom: 24px;">We received a request to reset your password. Use the OTP below:</p>
         <div style="background: #111; border: 1px solid #333; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
@@ -46,7 +47,7 @@ export async function sendPasswordResetEmail(email, otp, name) {
           <h1 style="font-size: 48px; font-weight: bold; letter-spacing: 12px; margin: 0;">${otp}</h1>
           <p style="color: #888; font-size: 12px; margin-top: 12px;">Valid for 10 minutes</p>
         </div>
-        <p style="color: #666; font-size: 12px;">If you didn't request a password reset, please ignore this email. Your password will remain unchanged.</p>
+        <p style="color: #666; font-size: 12px;">If you didn't request a password reset on ${config.brandName}, please ignore this email.</p>
       </div>
     `
   })

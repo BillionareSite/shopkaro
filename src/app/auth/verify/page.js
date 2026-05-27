@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import config from '@/lib/config'
 
 export default function VerifyOTP() {
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
@@ -13,11 +14,8 @@ export default function VerifyOTP() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const emailParam = params.get('email')
-    if (!emailParam) {
-      window.location.href = '/auth/signup'
-    } else {
-      setEmail(emailParam)
-    }
+    if (!emailParam) { window.location.href = '/auth/signup' }
+    else { setEmail(emailParam) }
   }, [])
 
   const handleOtpChange = (index, value) => {
@@ -25,15 +23,11 @@ export default function VerifyOTP() {
     const newOtp = [...otp]
     newOtp[index] = value
     setOtp(newOtp)
-    if (value && index < 5) {
-      document.getElementById(`otp-${index + 1}`)?.focus()
-    }
+    if (value && index < 5) { document.getElementById(`otp-${index + 1}`)?.focus() }
   }
 
   const handleKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      document.getElementById(`otp-${index - 1}`)?.focus()
-    }
+    if (e.key === 'Backspace' && !otp[index] && index > 0) { document.getElementById(`otp-${index - 1}`)?.focus() }
   }
 
   const handlePaste = (e) => {
@@ -45,10 +39,7 @@ export default function VerifyOTP() {
 
   const handleVerify = async () => {
     const otpString = otp.join('')
-    if (otpString.length !== 6) {
-      setMessage('Please enter the complete 6-digit OTP!')
-      return
-    }
+    if (otpString.length !== 6) { setMessage('Please enter the complete 6-digit OTP!'); return }
     setLoading(true)
     setMessage('')
     const res = await fetch('/api/auth/verify-otp', {
@@ -59,74 +50,50 @@ export default function VerifyOTP() {
     const data = await res.json()
     setLoading(false)
     setMessage(data.message)
-    if (res.ok) {
-      setVerified(true)
-      setTimeout(() => {
-        window.location.href = '/auth/login'
-      }, 2000)
-    }
+    if (res.ok) { setVerified(true); setTimeout(() => { window.location.href = '/auth/login' }, 2000) }
   }
 
   const handleResend = async () => {
     setResending(true)
     setMessage('')
-    const res = await fetch('/api/auth/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name: 'User', password: 'resend' })
-    })
+    await fetch('/api/auth/signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, name: 'User', password: 'resend' }) })
     setResending(false)
     setMessage('New OTP sent to your email!')
     setOtp(['', '', '', '', '', ''])
   }
 
   if (verified) return (
-    <main className="min-h-screen bg-black text-white flex items-center justify-center px-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="text-center"
-      >
+    <main className="min-h-screen bg-[#f6f1ea] flex items-center justify-center px-4">
+      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
         <div className="text-6xl mb-4">✅</div>
-        <h2 className="text-2xl font-bold mb-2">Email Verified!</h2>
-        <p className="text-gray-400">Redirecting to login...</p>
+        <h2 className="text-2xl font-semibold mb-2 text-[#171313]">Email Verified!</h2>
+        <p className="text-[#7b6f66]">Redirecting to login...</p>
       </motion.div>
     </main>
   )
 
   return (
-    <main className="min-h-screen bg-black text-white flex flex-col">
-
-      <motion.nav
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="border-b border-gray-800 px-6 py-4 flex items-center justify-between"
-      >
-        <a href="/" className="text-2xl font-bold tracking-wide">ShopKaro</a>
-        <div className="flex gap-4 text-gray-300 text-sm">
-          <a href="/auth/login" className="hover:text-white transition">Login</a>
-          <a href="/auth/signup" className="hover:text-white transition">Signup</a>
+    <main className="min-h-screen bg-[#f6f1ea] text-[#171313] flex flex-col">
+      <header className="border-b border-[#241a14]/10 bg-[#f6f1ea]/85 backdrop-blur-xl px-5 py-4 flex items-center justify-between">
+        <a href="/" className="flex items-center gap-3">
+          <div className="grid h-9 w-9 place-items-center rounded-full bg-[#171313] text-xs font-semibold text-white">{config.shortCode}</div>
+          <span className="text-lg font-semibold">{config.brandName}</span>
+        </a>
+        <div className="flex gap-4 text-sm text-[#6d625a]">
+          <a href="/auth/login" className="hover:text-[#171313] transition">Login</a>
+          <a href="/auth/signup" className="hover:text-[#171313] transition">Signup</a>
         </div>
-      </motion.nav>
+      </header>
 
       <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          className="w-full max-w-md bg-[#111] border border-gray-800 rounded-2xl p-8"
-        >
+        <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="w-full max-w-md rounded-[1.4rem] bg-white shadow-xl shadow-[#3d2619]/8 p-8">
           <div className="text-center mb-8">
             <p className="text-5xl mb-4">📧</p>
-            <h2 className="text-2xl font-bold mb-2">Check your email</h2>
-            <p className="text-gray-400 text-sm">
-              We sent a 6-digit OTP to
-            </p>
-            <p className="text-white font-semibold text-sm mt-1">{email}</p>
+            <h2 className="text-2xl font-semibold mb-2">Check your email</h2>
+            <p className="text-sm text-[#7b6f66]">We sent a 6-digit OTP to</p>
+            <p className="font-semibold text-sm mt-1">{email}</p>
           </div>
 
-          {/* OTP Input */}
           <div className="flex gap-3 justify-center mb-8" onPaste={handlePaste}>
             {otp.map((digit, index) => (
               <input
@@ -138,49 +105,28 @@ export default function VerifyOTP() {
                 value={digit}
                 onChange={(e) => handleOtpChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
-                className="w-12 h-14 text-center text-xl font-bold bg-[#1a1a1a] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-white transition"
+                className="w-12 h-14 text-center text-xl font-bold rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] text-[#171313] focus:outline-none focus:border-[#171313]/30 transition"
               />
             ))}
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleVerify}
-            disabled={loading}
-            className="w-full bg-white text-black font-semibold py-3 rounded-xl hover:bg-gray-100 transition mb-4"
-          >
+          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleVerify} disabled={loading} className="w-full rounded-full bg-[#171313] py-3.5 text-sm font-semibold text-white transition hover:bg-[#3a2a21] mb-4">
             {loading ? 'Verifying...' : 'Verify OTP'}
           </motion.button>
 
           {message && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className={`text-center text-sm mb-4 ${
-                message.includes('sent') || message.includes('verified') || message.includes('Verified')
-                  ? 'text-green-400'
-                  : 'text-red-400'
-              }`}
-            >
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`text-center text-sm mb-4 ${message.includes('sent') || message.includes('verified') || message.includes('Verified') ? 'text-green-600' : 'text-red-500'}`}>
               {message}
             </motion.p>
           )}
 
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-[#9b8f86]">
             Didn't receive the OTP?{' '}
-            <button
-              onClick={handleResend}
-              disabled={resending}
-              className="text-white hover:underline"
-            >
+            <button onClick={handleResend} disabled={resending} className="font-semibold text-[#171313] hover:underline">
               {resending ? 'Sending...' : 'Resend OTP'}
             </button>
           </p>
-
-          <p className="text-center text-xs text-gray-600 mt-4">
-            OTP expires in 10 minutes
-          </p>
+          <p className="text-center text-xs text-[#9b8f86] mt-3">OTP expires in 10 minutes</p>
         </motion.div>
       </div>
     </main>

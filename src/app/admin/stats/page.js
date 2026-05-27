@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import config from '@/lib/config'
 
 export default function AdminStats() {
   const [stats, setStats] = useState(null)
@@ -68,22 +69,23 @@ export default function AdminStats() {
 
       {/* Navbar */}
       <nav className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-        <a href="/" className="text-2xl font-bold">ShopKaro</a>
-        <span className="text-gray-400 text-sm">Admin — Stats</span>
-        <div className="flex items-center gap-4">
-          <a href="/admin" className="text-sm text-gray-400 hover:text-white transition">← Dashboard</a>
-          <a href="/admin/orders" className="text-sm text-gray-400 hover:text-white transition">📦 Orders</a>
-          <button
-            onClick={async () => {
-              await fetch('/api/admin/logout', { method: 'POST' })
-              window.location.href = '/admin-login'
-            }}
-            className="text-sm border border-red-900 text-red-500 px-3 py-1 rounded-lg hover:bg-red-500 hover:text-white transition"
-          >
-            Logout
-          </button>
-        </div>
-      </nav>
+  <a href="/" className="text-2xl font-bold">{config.brandName}</a>
+  <span className="text-gray-400 text-sm">Admin — Stats</span>
+  <div className="flex items-center gap-4">
+    <a href="/admin" className="text-sm text-gray-400 hover:text-white transition">← Dashboard</a>
+    <a href="/admin/orders" className="text-sm text-gray-400 hover:text-white transition">📦 Orders</a>
+    <a href="/admin/tickets" className="text-sm text-gray-400 hover:text-white transition">🎧 Support</a>
+    <button
+      onClick={async () => {
+        await fetch('/api/admin/logout', { method: 'POST' })
+        window.location.href = '/admin-login'
+      }}
+      className="text-sm border border-red-900 text-red-500 px-3 py-1 rounded-lg hover:bg-red-500 hover:text-white transition"
+    >
+      Logout
+    </button>
+  </div>
+</nav>
 
       <div className="max-w-6xl mx-auto px-6 py-8 pb-16">
         <motion.h2

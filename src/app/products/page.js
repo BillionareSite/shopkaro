@@ -10,6 +10,12 @@ export default function Products() {
   const [search, setSearch] = useState('')
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const cat = params.get('category')
+    const q = params.get('search')
+    if (cat) setCategory(cat)
+    if (q) setSearch(q)
+
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {
@@ -24,54 +30,41 @@ export default function Products() {
     .filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
 
   return (
-    <main className="min-h-screen bg-black text-white">
-
+    <main className="min-h-screen bg-[#f6f1ea] text-[#171313]">
       <Navbar />
 
-      <div className="px-6 py-8">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-2xl md:text-3xl font-bold mb-6"
-        >
-          All Products
-        </motion.h2>
+      <div className="mx-auto max-w-7xl px-5 py-10">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8c6048]">Shop</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">All Products</h1>
+          <p className="mt-1 text-sm text-[#7b6f66]">Discover our entire collection</p>
+        </motion.div>
 
         {/* Search Bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="relative mb-6"
-        >
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">🔍</span>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="relative mb-6">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9b8f86]">🔍</span>
           <input
             type="text"
             placeholder="Search products..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[#111] border border-gray-700 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
+            className="w-full rounded-full border border-[#241a14]/15 bg-white/70 py-3 pl-11 pr-4 text-sm text-[#171313] placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
           />
           {search && (
-            <button
-              onClick={() => setSearch('')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition"
-            >
-              ✕
-            </button>
+            <button onClick={() => setSearch('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9b8f86] hover:text-[#171313] transition">✕</button>
           )}
         </motion.div>
 
         {/* Category Pills */}
-        <div className="flex gap-3 overflow-x-auto mb-8 pb-2">
+        <div className="flex gap-2 overflow-x-auto mb-8 pb-2">
           {categories.map(cat => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}
-              className={`whitespace-nowrap px-4 py-2 rounded-full border text-sm font-medium transition ${
+              className={`whitespace-nowrap rounded-full px-5 py-2 text-sm font-medium transition ${
                 category === cat
-                  ? 'bg-white text-black border-white'
-                  : 'border-gray-700 text-gray-400 hover:border-white hover:text-white'
+                  ? 'bg-[#171313] text-white'
+                  : 'border border-[#241a14]/15 bg-white/55 text-[#6d625a] hover:bg-white/80'
               }`}
             >
               {cat}
@@ -80,101 +73,80 @@ export default function Products() {
         </div>
 
         {search && (
-          <p className="text-gray-500 text-sm mb-4">
-            {filtered.length} result{filtered.length !== 1 ? 's' : ''} for "<span className="text-white">{search}</span>"
+          <p className="text-sm mb-4 text-[#7b6f66]">
+            {filtered.length} result{filtered.length !== 1 ? 's' : ''} for "<span className="text-[#171313] font-medium">{search}</span>"
           </p>
         )}
 
         {loading ? (
-          <div className="text-center py-20 text-gray-500">Loading products...</div>
+          <div className="text-center py-20 text-[#9b8f86]">Loading products...</div>
         ) : filtered.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-20"
-          >
+          <div className="text-center py-20 rounded-[2rem] border border-[#241a14]/10 bg-white/55">
             <p className="text-4xl mb-4">🔍</p>
-            <p className="text-gray-500 text-lg">No products found!</p>
-            <p className="text-gray-600 text-sm mt-2">
-              {search ? `No results for "${search}". Try a different keyword.` : 'No products in this category yet.'}
+            <p className="text-lg font-semibold text-[#171313] mb-2">No products found!</p>
+            <p className="text-sm text-[#7b6f66] mb-4">
+              {search ? `No results for "${search}"` : 'No products in this category yet.'}
             </p>
             {search && (
-              <button
-                onClick={() => setSearch('')}
-                className="mt-4 text-white border border-gray-700 px-4 py-2 rounded-lg text-sm hover:border-white transition"
-              >
+              <button onClick={() => setSearch('')} className="rounded-full border border-[#241a14]/15 bg-white/55 px-4 py-2 text-sm font-medium text-[#6d625a] transition hover:bg-white/80">
                 Clear Search
               </button>
             )}
-          </motion.div>
+          </div>
         ) : (
           <motion.div
             initial="hidden"
             animate="visible"
-            variants={{
-              hidden: {},
-              visible: { transition: { staggerChildren: 0.08 } }
-            }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
+            variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
+            className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6"
           >
-            {filtered.map((product) => (
+            {filtered.map((product, index) => (
               <motion.a
                 key={product.id}
-                href={'/products/' + product.id}
-                variants={{
-                  hidden: { opacity: 0, y: 40 },
-                  visible: { opacity: 1, y: 0 }
-                }}
-                whileHover={{ scale: 1.03 }}
-                className="bg-[#111] border border-gray-800 rounded-xl p-4 cursor-pointer block"
+                href={`/products/${product.id}`}
+                variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0 } }}
+                whileHover={{ y: -5 }}
+                className="group overflow-hidden rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5"
               >
-                {/* Image with Out of Stock overlay */}
-                <div className="relative bg-[#1a1a1a] h-36 md:h-44 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                <div className="relative aspect-square overflow-hidden bg-[#eadfd4]">
                   {product.images?.[0] ? (
-                    <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover"/>
+                    <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105"/>
                   ) : (
-                    <span className="text-4xl">🛍️</span>
+                    <div className="grid h-full place-items-center text-sm text-[#7b6f66]">No image</div>
                   )}
                   {product.originalPrice > product.price && product.stock > 0 && (
-                    <span className="absolute top-2 left-2 bg-white text-black text-xs font-bold px-2 py-1 rounded-full">
+                    <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#171313] shadow">
                       {Math.round((1 - product.price / product.originalPrice) * 100)}% off
                     </span>
                   )}
                   {product.stock === 0 && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                      <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                        Out of Stock
-                      </span>
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                      <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#171313]">Out of Stock</span>
                     </div>
                   )}
                 </div>
-
-                <h4 className="font-semibold text-sm mb-1">{product.name}</h4>
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm">₹{product.price}</span>
-                  {product.originalPrice > product.price && (
-                    <span className="text-gray-600 text-xs line-through">₹{product.originalPrice}</span>
-                  )}
+                <div className="p-4">
+                  <h3 className="truncate text-sm font-semibold md:text-base">{product.name}</h3>
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="font-semibold">₹{product.price}</span>
+                    {product.originalPrice > product.price && (
+                      <span className="text-sm text-[#9b8f86] line-through">₹{product.originalPrice}</span>
+                    )}
+                  </div>
+                  <div className={`mt-4 rounded-full border border-[#241a14]/10 px-4 py-2 text-center text-sm font-semibold transition ${product.stock === 0 ? 'text-[#9b8f86] cursor-not-allowed' : 'group-hover:bg-[#171313] group-hover:text-white'}`}>
+                    {product.stock === 0 ? 'Out of Stock' : 'View product'}
+                  </div>
                 </div>
-
-                {/* Button */}
-                <motion.button
-                  whileHover={{ scale: product.stock === 0 ? 1 : 1.05 }}
-                  whileTap={{ scale: product.stock === 0 ? 1 : 0.95 }}
-                  disabled={product.stock === 0}
-                  className={`mt-3 w-full text-sm py-2 rounded-lg font-semibold transition ${
-                    product.stock === 0
-                      ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                      : 'bg-white text-black hover:bg-gray-100'
-                  }`}
-                >
-                  {product.stock === 0 ? 'Out of Stock' : 'View Product'}
-                </motion.button>
               </motion.a>
             ))}
           </motion.div>
         )}
       </div>
+
+      {/* Footer */}
+      <footer className="border-t border-[#241a14]/10 px-5 py-10 mt-10">
+        <p className="text-center text-sm text-[#9b8f86]">© 2026 Shropping. All rights reserved.</p>
+      </footer>
     </main>
   )
 }

@@ -32,6 +32,7 @@ model Product {
 
 model Order {
   id        String   @id @default(cuid())
+  orderId   String   @unique @default("")
   name      String
   phone     String
   address   String
@@ -49,6 +50,7 @@ model Ticket {
   email     String
   subject   String
   message   String
+  messages  Json     @default("[]")
   reply     String?
   status    String   @default("open")
   createdAt DateTime @default(now())

@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, use } from 'react'
 import { motion } from 'framer-motion'
+import Navbar from '../../components/Navbar'
 
 export default function ProductDetail({ params }) {
   const { id } = use(params)
@@ -8,12 +9,9 @@ export default function ProductDetail({ params }) {
   const [loading, setLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
   const [activeImage, setActiveImage] = useState(0)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem('token'))
     fetch('/api/products/' + id)
       .then(res => res.json())
       .then(data => {
@@ -31,130 +29,63 @@ export default function ProductDetail({ params }) {
       cart.push({ ...product, quantity })
     }
     localStorage.setItem('cart', JSON.stringify(cart))
+    window.dispatchEvent(new Event('storage'))
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
   }
 
   if (loading) return (
-    <main className="min-h-screen bg-black text-white flex items-center justify-center">
-      <p className="text-gray-500">Loading product...</p>
+    <main className="min-h-screen bg-[#f6f1ea] flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-8 h-8 rounded-full border-2 border-[#171313] border-t-transparent animate-spin mx-auto mb-3"/>
+        <p className="text-[#7b6f66] text-sm">Loading product...</p>
+      </div>
     </main>
   )
 
   if (!product) return (
-    <main className="min-h-screen bg-black text-white flex items-center justify-center">
-      <p className="text-gray-500">Product not found!</p>
+    <main className="min-h-screen bg-[#f6f1ea] flex items-center justify-center">
+      <p className="text-[#7b6f66]">Product not found!</p>
     </main>
   )
 
   const discount = product.originalPrice > product.price
-    ? Math.round((1 - product.price / product.originalPrice) * 100)
-    : 0
-
+    ? Math.round((1 - product.price / product.originalPrice) * 100) : 0
   const images = product.images?.length > 0 ? product.images : []
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-[#f6f1ea] text-[#171313]">
+      <Navbar />
 
-      {/* Navbar */}
-      <motion.nav
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="border-b border-gray-800 px-6 py-4"
-      >
-        <div className="flex items-center justify-between">
-          <a href="/" className="text-2xl font-bold tracking-wide">ShopKaro</a>
-          <div className="hidden md:flex gap-6 text-gray-300 text-sm">
-            <a href="/" className="hover:text-white transition">Home</a>
-            <a href="/products" className="hover:text-white transition">Products</a>
-            {isLoggedIn ? (
-              <a href="/profile" className="hover:text-white transition">Profile</a>
-            ) : (
-              <>
-                <a href="/auth/login" className="hover:text-white transition">Login</a>
-                <a href="/auth/signup" className="hover:text-white transition">Signup</a>
-              </>
-            )}
-          </div>
-          <a href="/cart" className="hidden md:block">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-white text-black px-4 py-2 rounded-lg font-semibold text-sm"
-            >
-              Cart 🛒
-            </motion.button>
-          </a>
-          <button
-            className="md:hidden text-white text-2xl"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            {menuOpen ? '✕' : '☰'}
-          </button>
-        </div>
-        {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="md:hidden mt-4 flex flex-col gap-4 border-t border-gray-800 pt-4 text-sm"
-          >
-            <a href="/" className="text-gray-300 hover:text-white">Home</a>
-            <a href="/products" className="text-gray-300 hover:text-white">Products</a>
-            {isLoggedIn ? (
-              <a href="/profile" className="text-gray-300 hover:text-white">Profile</a>
-            ) : (
-              <>
-                <a href="/auth/login" className="text-gray-300 hover:text-white">Login</a>
-                <a href="/auth/signup" className="bg-white text-black text-center py-2 rounded-lg font-semibold">Sign Up</a>
-              </>
-            )}
-            <a href="/cart" className="border border-gray-700 text-white text-center py-2 rounded-lg hover:border-white transition">Cart 🛒</a>
-          </motion.div>
-        )}
-      </motion.nav>
-
-      {/* Back button */}
-      <div className="px-6 py-4">
-        <a href="/products" className="text-gray-400 hover:text-white text-sm transition">
+      <div className="mx-auto max-w-6xl px-5 py-8">
+        <a href="/products" className="inline-flex items-center gap-2 text-sm text-[#7b6f66] hover:text-[#171313] transition mb-8">
           ← Back to Products
         </a>
-      </div>
 
-      {/* Product Detail */}
-      <div className="max-w-5xl mx-auto px-6 py-4 pb-16">
-        <div className="grid md:grid-cols-2 gap-10">
-
+        <div className="grid md:grid-cols-2 gap-12">
           {/* Image Gallery */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="bg-[#111] border border-gray-800 rounded-2xl overflow-hidden flex items-center justify-center h-72 md:h-96 mb-3">
+          <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
+            <div className="overflow-hidden rounded-[2rem] bg-[#eadfd4] shadow-xl shadow-[#3d2619]/10 flex items-center justify-center h-80 md:h-[460px] mb-4">
               {images.length > 0 ? (
                 <motion.img
                   key={activeImage}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
                   src={images[activeImage]}
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-8xl">🛍️</span>
+                <span className="text-6xl">🛍️</span>
               )}
             </div>
             {images.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-1">
+              <div className="flex gap-3 overflow-x-auto pb-1">
                 {images.map((img, index) => (
                   <button
                     key={index}
                     onClick={() => setActiveImage(index)}
-                    className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition ${
-                      activeImage === index ? 'border-white' : 'border-gray-700 hover:border-gray-500'
-                    }`}
+                    className={`flex-shrink-0 w-16 h-16 rounded-2xl overflow-hidden border-2 transition ${activeImage === index ? 'border-[#171313]' : 'border-transparent opacity-60 hover:opacity-100'}`}
                   >
                     <img src={img} alt={`View ${index + 1}`} className="w-full h-full object-cover"/>
                   </button>
@@ -164,54 +95,33 @@ export default function ProductDetail({ params }) {
           </motion.div>
 
           {/* Product Info */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-            className="flex flex-col justify-center"
-          >
-            <span className="text-xs font-bold uppercase tracking-widest text-gray-500 border border-gray-700 px-3 py-1 rounded-full w-fit mb-4">
+          <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }} className="flex flex-col justify-center">
+            <span className="inline-block text-xs font-semibold uppercase tracking-[0.18em] text-[#8c6048] border border-[#241a14]/15 bg-white/55 px-3 py-1 rounded-full w-fit mb-4">
               {product.category}
             </span>
 
-            <h1 className="text-2xl md:text-3xl font-bold mb-3">{product.name}</h1>
-
-            <p className="text-gray-400 text-sm leading-relaxed mb-6">
-              {product.description}
-            </p>
+            <h1 className="text-3xl md:text-4xl font-semibold leading-tight mb-4">{product.name}</h1>
 
             <div className="flex items-center gap-3 mb-2">
-              <span className="text-3xl font-bold">₹{product.price}</span>
+              <span className="text-4xl font-semibold">₹{product.price}</span>
               {discount > 0 && (
                 <>
-                  <span className="text-gray-600 line-through text-lg">₹{product.originalPrice}</span>
-                  <span className="bg-white text-black text-xs font-bold px-2 py-1 rounded-full">
-                    {discount}% off
-                  </span>
+                  <span className="line-through text-xl text-[#9b8f86]">₹{product.originalPrice}</span>
+                  <span className="rounded-full bg-[#171313] text-white text-xs font-semibold px-3 py-1">{discount}% off</span>
                 </>
               )}
             </div>
 
-            <p className="text-green-400 text-sm mb-6">
-              {product.stock > 0 ? `In Stock (${product.stock} available)` : 'Out of Stock'}
+            <p className={`text-sm mb-6 font-medium ${product.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
+              {product.stock > 0 ? `✓ In Stock (${product.stock} available)` : '✕ Out of Stock'}
             </p>
 
-            <div className="flex items-center gap-4 mb-6">
-              <span className="text-gray-400 text-sm">Quantity:</span>
-              <div className="flex items-center gap-3 bg-[#111] border border-gray-700 rounded-xl px-4 py-2">
-                <button
-                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  className="text-gray-400 hover:text-white text-lg font-bold"
-                >
-                  −
-                </button>
+            <div className="flex items-center gap-4 mb-8">
+              <span className="text-sm text-[#7b6f66]">Quantity:</span>
+              <div className="flex items-center gap-3 rounded-full border border-[#241a14]/15 bg-white/55 px-4 py-2">
+                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="text-lg font-semibold text-[#7b6f66] hover:text-[#171313] transition">−</button>
                 <span className="w-6 text-center font-semibold">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(q => Math.min(product.stock, q + 1))}
-                  className="text-gray-400 hover:text-white text-lg font-bold"
-                >
-                  +
-                </button>
+                <button onClick={() => setQuantity(q => Math.min(product.stock, q + 1))} className="text-lg font-semibold text-[#7b6f66] hover:text-[#171313] transition">+</button>
               </div>
             </div>
 
@@ -221,7 +131,7 @@ export default function ProductDetail({ params }) {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleAddToCart}
                 disabled={product.stock === 0}
-                className="flex-1 bg-white text-black font-semibold py-3 rounded-xl hover:bg-gray-100 transition"
+                className={`flex-1 rounded-full py-4 font-semibold text-sm transition ${added ? 'bg-green-600 text-white' : product.stock === 0 ? 'bg-[#241a14]/10 text-[#9b8f86] cursor-not-allowed' : 'bg-[#171313] text-white hover:bg-[#3a2a21]'}`}
               >
                 {added ? '✓ Added to Cart!' : 'Add to Cart 🛒'}
               </motion.button>
@@ -229,7 +139,7 @@ export default function ProductDetail({ params }) {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full border border-gray-700 text-white font-semibold py-3 rounded-xl hover:border-white transition"
+                  className="w-full rounded-full border border-[#241a14]/15 bg-white/55 py-4 font-semibold text-sm transition hover:bg-white/80"
                 >
                   View Cart
                 </motion.button>
@@ -237,7 +147,54 @@ export default function ProductDetail({ params }) {
             </div>
           </motion.div>
         </div>
+
+        {/* Description Section */}
+        {product.description && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-12"
+          >
+            <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 overflow-hidden">
+              <div className="border-b border-[#241a14]/10 px-8 py-5">
+                <h2 className="text-xl font-semibold">Product Description</h2>
+              </div>
+              <div className="px-8 py-6">
+                <p className="text-[#6f6258] text-sm md:text-base leading-relaxed whitespace-pre-line">
+                  {product.description}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Additional Info */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4"
+        >
+          {[
+            { icon: '🚚', title: 'Fast Delivery', desc: 'Ships within 1-3 business days' },
+            { icon: '✅', title: 'Quality Checked', desc: 'Every product is verified before shipping' },
+            { icon: '↩️', title: 'Easy Returns', desc: '7-day hassle-free return policy' }
+          ].map((item, i) => (
+            <div key={i} className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-5 flex items-start gap-4">
+              <span className="text-2xl flex-shrink-0">{item.icon}</span>
+              <div>
+                <p className="font-semibold text-sm">{item.title}</p>
+                <p className="text-xs text-[#7b6f66] mt-0.5">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </motion.div>
       </div>
+
+      <footer className="border-t border-[#241a14]/10 px-5 py-10 mt-12">
+        <p className="text-center text-sm text-[#9b8f86]">© 2026 Shropping. All rights reserved.</p>
+      </footer>
     </main>
   )
 }

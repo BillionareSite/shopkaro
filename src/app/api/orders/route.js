@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendTelegramNotification } from '@/lib/telegram'
+import config from '@/lib/config'
 
 export async function POST(req) {
   try {
@@ -15,26 +16,18 @@ export async function POST(req) {
       data: { name, phone, address, pincode, items, total, email: email || '' }
     })
 
-    // Decrease stock for each item
     for (const item of items) {
-      const product = await prisma.product.findUnique({
-        where: { id: item.id }
-      })
+      const product = await prisma.product.findUnique({ where: { id: item.id } })
       if (product) {
         const newStock = Math.max(0, product.stock - item.quantity)
-        await prisma.product.update({
-          where: { id: item.id },
-          data: { stock: newStock }
-        })
+        await prisma.product.update({ where: { id: item.id }, data: { stock: newStock } })
       }
     }
 
-    // Build items list for Telegram
     const itemsList = items.map(item =>
       `  • ${item.name} x${item.quantity} — ₹${item.price * item.quantity}`
     ).join('\n')
 
-    // Send Telegram notification
     const message = `
 🛍️ <b>New Order Received!</b>
 
@@ -49,6 +42,7 @@ ${itemsList}
 💰 <b>Total: ₹${total}</b>
 🕐 <b>Time:</b> ${new Date().toLocaleString('en-IN')}
 📦 <b>Order ID:</b> #${order.id.slice(-8).toUpperCase()}
+🏪 <b>Store:</b> ${config.brandName}
     `.trim()
 
     await sendTelegramNotification(message)
