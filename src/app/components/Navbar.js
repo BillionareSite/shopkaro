@@ -44,15 +44,23 @@ export default function Navbar() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 gap-4">
 
         {/* Logo */}
-        <a href="/" className="flex items-center gap-3 flex-shrink-0">
-          <div className="grid h-11 w-11 place-items-center rounded-full bg-[#171313] text-sm font-semibold text-[#f6f1ea]">
-            {config.shortCode}
-          </div>
-          <div className="hidden sm:block">
-            <p className="text-xl font-semibold tracking-tight">{config.brandName}</p>
-            <p className="text-xs text-[#7b6f66]">{config.tagline}</p>
-          </div>
-        </a>
+<a href="/" className="flex items-center gap-3 flex-shrink-0">
+  {config.logo ? (
+    <img
+      src={config.logo}
+      alt={config.brandName}
+      className="h-11 w-11 rounded-full object-cover"
+    />
+  ) : (
+    <div className="grid h-11 w-11 place-items-center rounded-full bg-[#171313] text-sm font-semibold text-[#f6f1ea]">
+      {config.shortCode}
+    </div>
+  )}
+  <div className="hidden sm:block">
+    <p className="text-xl font-semibold tracking-tight">{config.brandName}</p>
+    <p className="text-xs text-[#7b6f66]">{config.tagline}</p>
+  </div>
+</a>
 
         {/* Desktop Nav */}
         <nav className="hidden items-center gap-6 text-sm font-medium text-[#6d625a] md:flex">
