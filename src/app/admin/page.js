@@ -123,6 +123,7 @@ export default function Admin() {
     <a href="/admin/stats" className="text-sm text-gray-400 hover:text-white transition">📊 Stats</a>
     <a href="/admin/orders" className="text-sm text-gray-400 hover:text-white transition">📦 Orders</a>
     <a href="/admin/tickets" className="text-sm text-gray-400 hover:text-white transition">🎧 Support</a>
+    <a href="/admin/coupons" className="text-sm text-[#7b6f66] hover:text-[#171313] transition">🎟️ Coupons</a>
     <a href="/products" className="text-sm text-gray-400 hover:text-white transition">View Store</a>
     <button
       onClick={async () => {

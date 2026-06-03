@@ -6,15 +6,49 @@ import config from '@/lib/config'
 export async function POST(req) {
   try {
     const body = await req.json()
-    const { name, phone, address, pincode, items, total, email } = body
+    const { name, phone, address, pincode, items, total, email, discount, couponCode, couponId } = body
 
     if (!name || !phone || !address || !pincode || !items || !total) {
       return NextResponse.json({ message: 'All fields are required' }, { status: 400 })
     }
 
+    const orderCount = await prisma.order.count()
+    const year = new Date().getFullYear()
+    const orderNumber = String(orderCount + 1).padStart(4, '0')
+    const orderId = `ORD-${year}-${orderNumber}`
+
     const order = await prisma.order.create({
-      data: { name, phone, address, pincode, items, total, email: email || '' }
+      data: {
+        orderId,
+        name,
+        phone,
+        address,
+        pincode,
+        items,
+        total,
+        email: email || '',
+        discount: discount || 0,
+        couponCode: couponCode || ''
+      }
     })
+
+    if (couponId && email) {
+      const user = await prisma.user.findUnique({ where: { email } })
+      if (user) {
+        await prisma.couponUsage.create({
+          data: {
+            couponId,
+            userId: user.id,
+            email,
+            orderId: order.id
+          }
+        })
+        await prisma.coupon.update({
+          where: { id: couponId },
+          data: { totalUsed: { increment: 1 } }
+        })
+      }
+    }
 
     for (const item of items) {
       const product = await prisma.product.findUnique({ where: { id: item.id } })
@@ -31,6 +65,7 @@ export async function POST(req) {
     const message = `
 🛍️ <b>New Order Received!</b>
 
+🔖 <b>Order ID:</b> ${orderId}
 👤 <b>Customer:</b> ${name}
 📧 <b>Email:</b> ${email || 'Guest'}
 📱 <b>Phone:</b> ${phone}
@@ -39,9 +74,8 @@ export async function POST(req) {
 🛒 <b>Items:</b>
 ${itemsList}
 
-💰 <b>Total: ₹${total}</b>
+${discount > 0 ? `🎟️ <b>Coupon:</b> ${couponCode} (−₹${discount})\n` : ''}💰 <b>Total: ₹${total}</b>
 🕐 <b>Time:</b> ${new Date().toLocaleString('en-IN')}
-📦 <b>Order ID:</b> #${order.id.slice(-8).toUpperCase()}
 🏪 <b>Store:</b> ${config.brandName}
     `.trim()
 
