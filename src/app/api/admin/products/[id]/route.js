@@ -15,7 +15,7 @@ export async function PUT(req, { params }) {
   try {
     const { id } = await params
     const body = await req.json()
-    const { name, description, price, originalPrice, images, category, stock, featured } = body
+    const { name, description, price, originalPrice, images, category, stock, featured, sameDayPincodes } = body
 
     const product = await prisma.product.update({
       where: { id },
@@ -27,13 +27,13 @@ export async function PUT(req, { params }) {
         images: images || [],
         category,
         stock: parseInt(stock) || 0,
-        featured: featured || false
+        featured: featured || false,
+        sameDayPincodes: sameDayPincodes || []
       }
     })
 
     return NextResponse.json({ message: 'Product updated!', product }, { status: 200 })
   } catch (error) {
-    console.log('PUT ERROR:', error.message)
     return NextResponse.json({ message: error.message }, { status: 500 })
   }
 }

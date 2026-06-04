@@ -1,6 +1,6 @@
 'use client'
-import { useState, useEffect, use } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect, use, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '../../components/Navbar'
 
 export default function ProductDetail({ params }) {
@@ -10,6 +10,11 @@ export default function ProductDetail({ params }) {
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
   const [activeImage, setActiveImage] = useState(0)
+  const [pincode, setPincode] = useState('')
+  const [deliveryResult, setDeliveryResult] = useState(null)
+  const [checkingDelivery, setCheckingDelivery] = useState(false)
+  const touchStartX = useRef(null)
+  const touchEndX = useRef(null)
 
   useEffect(() => {
     fetch('/api/products/' + id)
@@ -34,6 +39,51 @@ export default function ProductDetail({ params }) {
     setTimeout(() => setAdded(false), 2000)
   }
 
+  const nextImage = () => {
+    if (!product?.images?.length) return
+    setActiveImage(prev => (prev + 1) % product.images.length)
+  }
+
+  const prevImage = () => {
+    if (!product?.images?.length) return
+    setActiveImage(prev => prev === 0 ? product.images.length - 1 : prev - 1)
+  }
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.changedTouches[0].screenX
+  }
+
+  const handleTouchEnd = (e) => {
+    touchEndX.current = e.changedTouches[0].screenX
+    const diff = touchStartX.current - touchEndX.current
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        nextImage()
+      } else {
+        prevImage()
+      }
+    }
+  }
+
+  const checkDelivery = () => {
+    if (pincode.length !== 6) {
+      setDeliveryResult({ available: false, message: 'Please enter a valid 6-digit pincode!' })
+      return
+    }
+    setCheckingDelivery(true)
+    setTimeout(() => {
+      const pincodes = product.sameDayPincodes || []
+      const isAvailable = pincodes.includes(pincode)
+      setDeliveryResult({
+        available: isAvailable,
+        message: isAvailable
+          ? `✅ Same day delivery available for pincode ${pincode}!`
+          : `❌ Same day delivery not available for pincode ${pincode}. Standard delivery applies.`
+      })
+      setCheckingDelivery(false)
+    }, 800)
+  }
+
   if (loading) return (
     <main className="min-h-screen bg-[#f6f1ea] flex items-center justify-center">
       <div className="text-center">
@@ -52,6 +102,7 @@ export default function ProductDetail({ params }) {
   const discount = product.originalPrice > product.price
     ? Math.round((1 - product.price / product.originalPrice) * 100) : 0
   const images = product.images?.length > 0 ? product.images : []
+  const hasSameDayDelivery = product.sameDayPincodes?.length > 0
 
   return (
     <main className="min-h-screen bg-[#f6f1ea] text-[#171313]">
@@ -63,22 +114,71 @@ export default function ProductDetail({ params }) {
         </a>
 
         <div className="grid md:grid-cols-2 gap-12">
-          {/* Image Gallery */}
+
+          {/* Image Gallery with Swipe + Arrows */}
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
-            <div className="overflow-hidden rounded-[2rem] bg-[#eadfd4] shadow-xl shadow-[#3d2619]/10 flex items-center justify-center h-80 md:h-[460px] mb-4">
+            <div
+              className="relative overflow-hidden rounded-[2rem] bg-[#eadfd4] shadow-xl shadow-[#3d2619]/10 flex items-center justify-center h-80 md:h-[460px] mb-4 select-none"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
               {images.length > 0 ? (
-                <motion.img
-                  key={activeImage}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  src={images[activeImage]}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
+                <AnimatePresence mode="wait">
+                  <motion.img
+                    key={activeImage}
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -30 }}
+                    transition={{ duration: 0.25 }}
+                    src={images[activeImage]}
+                    alt={product.name}
+                    className="w-full h-full object-cover pointer-events-none"
+                  />
+                </AnimatePresence>
               ) : (
                 <span className="text-6xl">🛍️</span>
               )}
+
+              {/* Left Arrow */}
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={prevImage}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 backdrop-blur shadow-lg flex items-center justify-center text-xl font-bold text-[#171313] hover:bg-white transition z-10"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    onClick={nextImage}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 backdrop-blur shadow-lg flex items-center justify-center text-xl font-bold text-[#171313] hover:bg-white transition z-10"
+                  >
+                    ›
+                  </button>
+                </>
+              )}
+
+              {/* Image Counter */}
+              {images.length > 1 && (
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                  {images.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setActiveImage(index)}
+                      className={`rounded-full transition-all ${activeImage === index ? 'w-6 h-2 bg-[#171313]' : 'w-2 h-2 bg-[#171313]/30'}`}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Discount Badge */}
+              {discount > 0 && (
+                <div className="absolute top-3 left-3 z-10">
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#171313] shadow">{discount}% off</span>
+                </div>
+              )}
             </div>
+
+            {/* Thumbnails */}
             {images.length > 1 && (
               <div className="flex gap-3 overflow-x-auto pb-1">
                 {images.map((img, index) => (
@@ -112,9 +212,47 @@ export default function ProductDetail({ params }) {
               )}
             </div>
 
-            <p className={`text-sm mb-6 font-medium ${product.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
+            <p className={`text-sm mb-4 font-medium ${product.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
               {product.stock > 0 ? `✓ In Stock (${product.stock} available)` : '✕ Out of Stock'}
             </p>
+
+            {/* Same Day Delivery Checker */}
+            {hasSameDayDelivery && (
+              <div className="mb-6 rounded-2xl border border-[#241a14]/10 bg-white p-4">
+                <p className="text-sm font-semibold mb-1">⚡ Same Day Delivery Available</p>
+                <p className="text-xs text-[#7b6f66] mb-3">Enter your pincode to check availability</p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Enter 6-digit pincode"
+                    value={pincode}
+                    onChange={(e) => {
+                      setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))
+                      setDeliveryResult(null)
+                    }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') checkDelivery() }}
+                    className="flex-1 rounded-full border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-2.5 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
+                    maxLength={6}
+                  />
+                  <button
+                    onClick={checkDelivery}
+                    disabled={checkingDelivery || pincode.length !== 6}
+                    className="rounded-full bg-[#171313] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3a2a21] disabled:opacity-50"
+                  >
+                    {checkingDelivery ? '...' : 'Check'}
+                  </button>
+                </div>
+                {deliveryResult && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`text-xs mt-2 font-medium ${deliveryResult.available ? 'text-green-600' : 'text-red-500'}`}
+                  >
+                    {deliveryResult.message}
+                  </motion.p>
+                )}
+              </div>
+            )}
 
             <div className="flex items-center gap-4 mb-8">
               <span className="text-sm text-[#7b6f66]">Quantity:</span>
@@ -150,32 +288,20 @@ export default function ProductDetail({ params }) {
 
         {/* Description Section */}
         {product.description && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="mt-12"
-          >
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} className="mt-12">
             <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 overflow-hidden">
               <div className="border-b border-[#241a14]/10 px-8 py-5">
                 <h2 className="text-xl font-semibold">Product Description</h2>
               </div>
               <div className="px-8 py-6">
-                <p className="text-[#6f6258] text-sm md:text-base leading-relaxed whitespace-pre-line">
-                  {product.description}
-                </p>
+                <p className="text-[#6f6258] text-sm md:text-base leading-relaxed whitespace-pre-line">{product.description}</p>
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* Additional Info */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4"
-        >
+        {/* Info Cards */}
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }} className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             { icon: '🚚', title: 'Fast Delivery', desc: 'Ships within 1-3 business days' },
             { icon: '✅', title: 'Quality Checked', desc: 'Every product is verified before shipping' },
