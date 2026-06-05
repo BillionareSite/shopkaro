@@ -193,6 +193,7 @@ export default function Admin() {
             <a href="/admin/orders" className="text-sm text-[#7b6f66] hover:text-[#171313] transition">📦 Orders</a>
             <a href="/admin/tickets" className="text-sm text-[#7b6f66] hover:text-[#171313] transition">🎧 Support</a>
             <a href="/admin/coupons" className="text-sm text-[#7b6f66] hover:text-[#171313] transition">🎟️ Coupons</a>
+            <a href="/admin/settings" className="text-sm text-[#7b6f66] hover:text-[#171313] transition">⚙️ Settings</a>
             <a href="/admin/admins" className="text-sm text-[#7b6f66] hover:text-[#171313] transition">👥 Admins</a>
             <a href="/products" className="text-sm text-[#7b6f66] hover:text-[#171313] transition">View Store</a>
             <button
