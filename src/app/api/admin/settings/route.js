@@ -15,6 +15,7 @@ export async function GET() {
     }
     return NextResponse.json({ settings }, { status: 200 })
   } catch (error) {
+    console.log('SETTINGS ERROR:', error.message)
     return NextResponse.json({ message: error.message }, { status: 500 })
   }
 }
@@ -45,6 +46,7 @@ export async function PATCH(req) {
 
     return NextResponse.json({ message: 'Settings saved!', settings }, { status: 200 })
   } catch (error) {
+    console.log('SETTINGS PATCH ERROR:', error.message)
     return NextResponse.json({ message: error.message }, { status: 500 })
   }
 }

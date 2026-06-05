@@ -1,11 +1,5 @@
 import { NextResponse } from 'next/server'
 
-export const config = {
-  api: {
-    bodyParser: false
-  }
-}
-
 export async function POST(req) {
   try {
     const formData = await req.formData()
@@ -42,7 +36,6 @@ export async function POST(req) {
     const data = await response.json()
 
     if (!data.success) {
-      console.log('ImgBB failed:', data)
       return NextResponse.json({ message: 'Upload failed: ' + (data.error?.message || 'Unknown error') }, { status: 500 })
     }
 
