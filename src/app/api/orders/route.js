@@ -8,7 +8,7 @@ export async function POST(req) {
   try {
     const body = await req.json()
     const {
-      name, phone, address, pincode, items, total, email,
+      name, phone, whatsapp, address, pincode, items, total, email,
       discount, couponCode, couponId, paymentMethod,
       paymentSenderName, paymentUTR, paymentScreenshot
     } = body
@@ -22,13 +22,12 @@ export async function POST(req) {
     const orderNumber = String(orderCount + 1).padStart(4, '0')
     const orderId = `ORD-${year}-${orderNumber}`
 
-    const needsVerification = paymentMethod === 'upi' || paymentMethod === 'bank'
-
     const order = await prisma.order.create({
       data: {
         orderId,
         name,
         phone,
+        whatsapp: whatsapp || '',
         address,
         pincode,
         items,
@@ -66,16 +65,9 @@ export async function POST(req) {
       }
     }
 
-    const paymentLabels = {
-      cod: 'Cash on Delivery',
-      upi: 'UPI Payment',
-      bank: 'Bank Transfer',
-      card: 'Card Payment'
-    }
-
-    const itemsList = items.map(item =>
-      `  • ${item.name} x${item.quantity} — ₹${item.price * item.quantity}`
-    ).join('\n')
+    const paymentLabels = { cod: 'Cash on Delivery', upi: 'UPI Payment', bank: 'Bank Transfer', card: 'Card Payment' }
+    const needsVerification = paymentMethod === 'upi' || paymentMethod === 'bank'
+    const itemsList = items.map(item => `  • ${item.name} x${item.quantity} — ₹${item.price * item.quantity}`).join('\n')
 
     const telegramMessage = `
 🛍️ <b>New Order Received!</b>
@@ -84,7 +76,7 @@ export async function POST(req) {
 👤 <b>Customer:</b> ${name}
 📧 <b>Email:</b> ${email || 'Guest'}
 📱 <b>Phone:</b> ${phone}
-📍 <b>Address:</b> ${address}, ${pincode}
+${whatsapp ? `💬 <b>WhatsApp:</b> ${whatsapp}\n` : ''}📍 <b>Address:</b> ${address}, ${pincode}
 💳 <b>Payment:</b> ${paymentLabels[paymentMethod] || paymentMethod}
 ${needsVerification ? `🔍 <b>Verification:</b> Pending\n👤 <b>Sender:</b> ${paymentSenderName}\n🔢 <b>UTR:</b> ${paymentUTR}\n` : ''}
 🛒 <b>Items:</b>
@@ -99,12 +91,7 @@ ${discount > 0 ? `🎟️ <b>Coupon:</b> ${couponCode} (−₹${discount})\n` : 
 
     if (email) {
       try {
-        await sendOrderConfirmationEmail(
-          email,
-          { ...order, orderId, paymentMethod: paymentMethod || 'cod' },
-          items,
-          needsVerification
-        )
+        await sendOrderConfirmationEmail(email, { ...order, orderId, paymentMethod: paymentMethod || 'cod' }, items, needsVerification)
       } catch (emailError) {
         console.log('ORDER EMAIL ERROR:', emailError.message)
       }
@@ -121,16 +108,12 @@ export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url)
     const email = searchParams.get('email')
-
-    if (!email) {
-      return NextResponse.json({ message: 'Email required' }, { status: 400 })
-    }
-
+    if (!email) return NextResponse.json({ message: 'Email required' }, { status: 400 })
     const orders = await prisma.order.findMany({
       where: { email },
+      include: { cancellationRequest: true },
       orderBy: { createdAt: 'desc' }
     })
-
     return NextResponse.json({ orders }, { status: 200 })
   } catch (error) {
     return NextResponse.json({ message: error.message }, { status: 500 })

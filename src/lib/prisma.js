@@ -5,13 +5,24 @@ import pg from 'pg'
 const globalForPrisma = globalThis
 
 function createPrismaClient() {
+  const connectionString = process.env.DATABASE_URL
+
+  if (!connectionString) {
+    throw new Error('DATABASE_URL environment variable is not set')
+  }
+
   const pool = new pg.Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString,
     ssl: { rejectUnauthorized: false },
     max: 1
   })
+
   const adapter = new PrismaPg(pool)
-  return new PrismaClient({ adapter })
+
+  return new PrismaClient({
+    adapter,
+    log: process.env.NODE_ENV === 'development' ? ['error'] : ['error']
+  })
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient()

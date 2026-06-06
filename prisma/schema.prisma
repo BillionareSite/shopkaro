@@ -33,24 +33,37 @@ model Product {
 }
 
 model Order {
-  id                  String   @id @default(cuid())
-  orderId             String   @default("")
+  id                  String                @id @default(cuid())
+  orderId             String                @default("")
   name                String
   phone               String
+  whatsapp            String                @default("")
   address             String
   pincode             String
-  email               String   @default("")
+  email               String                @default("")
   items               Json
   total               Float
-  discount            Float    @default(0)
-  couponCode          String   @default("")
-  paymentMethod       String   @default("cod")
-  paymentSenderName   String   @default("")
-  paymentUTR          String   @default("")
-  paymentScreenshot   String   @default("")
-  paymentVerified     Boolean  @default(false)
-  status              String   @default("pending")
-  createdAt           DateTime @default(now())
+  discount            Float                 @default(0)
+  couponCode          String                @default("")
+  paymentMethod       String                @default("cod")
+  paymentSenderName   String                @default("")
+  paymentUTR          String                @default("")
+  paymentScreenshot   String                @default("")
+  paymentVerified     Boolean               @default(false)
+  status              String                @default("pending")
+  createdAt           DateTime              @default(now())
+  cancellationRequest CancellationRequest?
+}
+
+model CancellationRequest {
+  id        String   @id @default(cuid())
+  orderId   String   @unique
+  order     Order    @relation(fields: [orderId], references: [id])
+  reason    String
+  details   String   @default("")
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Ticket {
@@ -108,9 +121,9 @@ model AdminUser {
 }
 
 model StoreSettings {
-  id                    String   @id @default(cuid())
-  paymentMethods        Json     @default("{\"cod\":true,\"upi\":true,\"bank\":false,\"card\":false}")
-  upiId                 String   @default("")
-  bankDetails           String   @default("")
-  updatedAt             DateTime @updatedAt
+  id             String   @id @default(cuid())
+  paymentMethods Json     @default("{\"cod\":true,\"upi\":false,\"bank\":false,\"card\":false}")
+  upiId          String   @default("")
+  bankDetails    String   @default("")
+  updatedAt      DateTime @updatedAt
 }

@@ -6,10 +6,11 @@ import config from '@/lib/config'
 
 export default function Checkout() {
   const [cart, setCart] = useState([])
-  const [form, setForm] = useState({ name: '', phone: '', address: '', pincode: '' })
+  const [form, setForm] = useState({ name: '', phone: '', whatsapp: '', address: '', pincode: '' })
   const [placing, setPlacing] = useState(false)
   const [ordered, setOrdered] = useState(false)
   const [orderId, setOrderId] = useState('')
+  const [placedPaymentMethod, setPlacedPaymentMethod] = useState('')
   const [userEmail, setUserEmail] = useState('')
   const [couponCode, setCouponCode] = useState('')
   const [couponInput, setCouponInput] = useState('')
@@ -48,6 +49,7 @@ export default function Checkout() {
         }
         setLoadingSettings(false)
       })
+      .catch(() => setLoadingSettings(false))
   }, [])
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -146,6 +148,7 @@ export default function Checkout() {
       localStorage.removeItem('cart')
       window.dispatchEvent(new Event('storage'))
       setOrderId(data.order.orderId)
+      setPlacedPaymentMethod(paymentMethod)
       setOrdered(true)
     } else { alert(data.message) }
   }
@@ -168,19 +171,15 @@ export default function Checkout() {
           <p className="font-mono font-bold text-[#171313] text-xl mt-1">{orderId}</p>
           <p className="text-xs text-[#9b8f86] mt-2">📧 Order confirmation sent to your email</p>
         </div>
-        {(paymentMethod === 'upi' || paymentMethod === 'bank') && (
+        {(placedPaymentMethod === 'upi' || placedPaymentMethod === 'bank') && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl px-6 py-4 mb-6 text-left">
             <p className="text-sm font-semibold text-amber-700 mb-1">⏳ Payment Verification Pending</p>
-            <p className="text-xs text-amber-600 leading-relaxed">Your order will be confirmed as soon as we verify your payment. This usually takes a few minutes to a few hours. You'll receive an email once confirmed.</p>
+            <p className="text-xs text-amber-600 leading-relaxed">Your order will be confirmed as soon as we verify your payment. This usually takes a few minutes to a few hours.</p>
           </div>
         )}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <a href="/orders">
-            <motion.button whileHover={{ scale: 1.05 }} className="rounded-full bg-[#171313] px-8 py-3.5 text-sm font-semibold text-white transition hover:bg-[#3a2a21]">View Orders</motion.button>
-          </a>
-          <a href="/products">
-            <motion.button whileHover={{ scale: 1.05 }} className="rounded-full border border-[#241a14]/15 px-8 py-3.5 text-sm font-semibold text-[#171313] transition hover:bg-white/80">Continue Shopping</motion.button>
-          </a>
+          <a href="/orders"><motion.button whileHover={{ scale: 1.05 }} className="rounded-full bg-[#171313] px-8 py-3.5 text-sm font-semibold text-white transition hover:bg-[#3a2a21]">View Orders</motion.button></a>
+          <a href="/products"><motion.button whileHover={{ scale: 1.05 }} className="rounded-full border border-[#241a14]/15 px-8 py-3.5 text-sm font-semibold text-[#171313] transition hover:bg-white/80">Continue Shopping</motion.button></a>
         </div>
       </motion.div>
     </main>
@@ -202,35 +201,44 @@ export default function Checkout() {
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6">
               <h3 className="text-lg font-semibold mb-6">📍 Delivery Details</h3>
               <div className="space-y-4">
-                {[
-                  { label: 'Full Name', key: 'name', type: 'text', placeholder: 'Rahul Sharma' },
-                  { label: 'Phone Number', key: 'phone', type: 'tel', placeholder: '9876543210' },
-                  { label: 'Pincode', key: 'pincode', type: 'text', placeholder: '248001' }
-                ].map(field => (
-                  <div key={field.key}>
-                    <label className="text-sm text-[#7b6f66] mb-1 block">{field.label}</label>
+                <div>
+                  <label className="text-sm text-[#7b6f66] mb-1 block">Full Name</label>
+                  <input type="text" placeholder="Rahul Sharma" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"/>
+                </div>
+                <div>
+                  <label className="text-sm text-[#7b6f66] mb-1 block">Phone Number</label>
+                  <input type="tel" placeholder="9876543210" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"/>
+                </div>
+
+                {/* WhatsApp Field */}
+                <div>
+                  <label className="text-sm text-[#7b6f66] mb-1 block">
+                    WhatsApp Number <span className="text-[#9b8f86] text-xs">(Optional)</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg">💬</span>
                     <input
-                      type={field.type}
-                      placeholder={field.placeholder}
-                      value={form[field.key]}
-                      onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
-                      className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
+                      type="tel"
+                      placeholder="WhatsApp number (if different from phone)"
+                      value={form.whatsapp}
+                      onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+                      className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] pl-10 pr-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
                     />
                   </div>
-                ))}
+                  <p className="text-xs text-[#8c6048] mt-1.5">📲 Drop your WhatsApp number for faster order updates and delivery coordination!</p>
+                </div>
+
+                <div>
+                  <label className="text-sm text-[#7b6f66] mb-1 block">Pincode</label>
+                  <input type="text" placeholder="248001" value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"/>
+                </div>
                 <div>
                   <label className="text-sm text-[#7b6f66] mb-1 block">Email</label>
                   <input type="email" value={userEmail} readOnly className="w-full rounded-2xl border border-[#241a14]/10 bg-[#f6f1ea]/50 px-4 py-3 text-sm text-[#9b8f86] cursor-not-allowed"/>
                 </div>
                 <div>
                   <label className="text-sm text-[#7b6f66] mb-1 block">Full Address</label>
-                  <textarea
-                    placeholder="House No, Street, Area, City"
-                    value={form.address}
-                    onChange={(e) => setForm({ ...form, address: e.target.value })}
-                    rows={3}
-                    className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition resize-none"
-                  />
+                  <textarea placeholder="House No, Street, Area, City" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} rows={3} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition resize-none"/>
                 </div>
               </div>
             </motion.div>
@@ -245,11 +253,7 @@ export default function Checkout() {
               ) : (
                 <div className="space-y-3">
                   {paymentOptions.map(option => (
-                    <button
-                      key={option.id}
-                      onClick={() => setPaymentMethod(option.id)}
-                      className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition text-left ${paymentMethod === option.id ? 'border-[#171313] bg-[#171313]' : 'border-[#241a14]/15 bg-[#f6f1ea] hover:border-[#241a14]/30'}`}
-                    >
+                    <button key={option.id} onClick={() => setPaymentMethod(option.id)} className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition text-left ${paymentMethod === option.id ? 'border-[#171313] bg-[#171313]' : 'border-[#241a14]/15 bg-[#f6f1ea] hover:border-[#241a14]/30'}`}>
                       <span className="text-2xl">{option.icon}</span>
                       <div className="flex-1">
                         <p className={`font-semibold text-sm ${paymentMethod === option.id ? 'text-white' : 'text-[#171313]'}`}>{option.label}</p>
@@ -263,7 +267,7 @@ export default function Checkout() {
                 </div>
               )}
 
-              {/* UPI Payment Details */}
+              {/* UPI Details */}
               <AnimatePresence>
                 {paymentMethod === 'upi' && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mt-4">
@@ -272,50 +276,27 @@ export default function Checkout() {
                       <p className="text-sm text-blue-700 mb-1">Send ₹<span className="font-bold">{total}</span> to UPI ID:</p>
                       <div className="bg-white border border-blue-200 rounded-xl px-4 py-2 flex items-center justify-between mb-2">
                         <p className="font-mono font-bold text-blue-800 text-base">{storeSettings?.upiId || 'UPI ID not set'}</p>
-                        <button
-                          onClick={() => { navigator.clipboard.writeText(storeSettings?.upiId || ''); alert('UPI ID copied!') }}
-                          className="text-xs text-blue-600 hover:text-blue-800 border border-blue-300 px-2 py-1 rounded-lg transition"
-                        >
-                          Copy
-                        </button>
+                        <button onClick={() => { navigator.clipboard.writeText(storeSettings?.upiId || ''); alert('UPI ID copied!') }} className="text-xs text-blue-600 hover:text-blue-800 border border-blue-300 px-2 py-1 rounded-lg transition">Copy</button>
                       </div>
                       <p className="text-xs text-blue-600">After payment, fill in the details below and upload a screenshot.</p>
                     </div>
                     <div className="space-y-3">
                       <div>
                         <label className="text-sm text-[#7b6f66] mb-1 block">Sender Name (as in UPI app) *</label>
-                        <input
-                          type="text"
-                          placeholder="Name shown in your UPI app"
-                          value={paymentProof.senderName}
-                          onChange={(e) => setPaymentProof(prev => ({ ...prev, senderName: e.target.value }))}
-                          className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
-                        />
+                        <input type="text" placeholder="Name shown in your UPI app" value={paymentProof.senderName} onChange={(e) => setPaymentProof(prev => ({ ...prev, senderName: e.target.value }))} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"/>
                       </div>
                       <div>
                         <label className="text-sm text-[#7b6f66] mb-1 block">UTR / Transaction Number *</label>
-                        <input
-                          type="text"
-                          placeholder="12-digit UTR number from your payment app"
-                          value={paymentProof.utr}
-                          onChange={(e) => setPaymentProof(prev => ({ ...prev, utr: e.target.value }))}
-                          className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
-                        />
+                        <input type="text" placeholder="12-digit UTR number from your payment app" value={paymentProof.utr} onChange={(e) => setPaymentProof(prev => ({ ...prev, utr: e.target.value }))} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"/>
                       </div>
                       <div>
                         <label className="text-sm text-[#7b6f66] mb-1 block">Payment Screenshot *</label>
                         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleScreenshotUpload} className="hidden"/>
                         {paymentProof.screenshotPreview ? (
                           <div className="relative">
-                            <img src={paymentProof.screenshotPreview} alt="Payment Screenshot" className="w-full h-40 object-cover rounded-2xl border border-[#241a14]/15"/>
-                            {uploadingScreenshot && (
-                              <div className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center">
-                                <div className="text-white text-sm font-semibold">Uploading...</div>
-                              </div>
-                            )}
-                            {!uploadingScreenshot && screenshotUrl && (
-                              <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">✓ Uploaded</div>
-                            )}
+                            <img src={paymentProof.screenshotPreview} alt="Screenshot" className="w-full h-40 object-cover rounded-2xl border border-[#241a14]/15"/>
+                            {uploadingScreenshot && <div className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center"><div className="text-white text-sm font-semibold">Uploading...</div></div>}
+                            {!uploadingScreenshot && screenshotUrl && <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">✓ Uploaded</div>}
                             <button onClick={() => { setPaymentProof(prev => ({ ...prev, screenshot: null, screenshotPreview: '' })); setScreenshotUrl(''); if (fileInputRef.current) fileInputRef.current.value = '' }} className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">✕</button>
                           </div>
                         ) : (
@@ -337,7 +318,7 @@ export default function Checkout() {
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mt-4">
                     <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4 mb-4">
                       <p className="text-sm font-bold text-purple-700 mb-2">🏦 Bank Transfer Instructions</p>
-                      <p className="text-sm text-purple-700 mb-3">Transfer ₹<span className="font-bold">{total}</span> to the following account:</p>
+                      <p className="text-sm text-purple-700 mb-3">Transfer ₹<span className="font-bold">{total}</span> to:</p>
                       <div className="bg-white border border-purple-200 rounded-xl p-3 mb-2">
                         <p className="text-sm text-purple-800 whitespace-pre-line font-mono">{storeSettings?.bankDetails || 'Bank details not configured'}</p>
                       </div>
@@ -346,38 +327,20 @@ export default function Checkout() {
                     <div className="space-y-3">
                       <div>
                         <label className="text-sm text-[#7b6f66] mb-1 block">Account Holder Name *</label>
-                        <input
-                          type="text"
-                          placeholder="Name on your bank account"
-                          value={paymentProof.senderName}
-                          onChange={(e) => setPaymentProof(prev => ({ ...prev, senderName: e.target.value }))}
-                          className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
-                        />
+                        <input type="text" placeholder="Name on your bank account" value={paymentProof.senderName} onChange={(e) => setPaymentProof(prev => ({ ...prev, senderName: e.target.value }))} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"/>
                       </div>
                       <div>
-                        <label className="text-sm text-[#7b6f66] mb-1 block">UTR / Transaction Reference Number *</label>
-                        <input
-                          type="text"
-                          placeholder="Transaction reference from your bank"
-                          value={paymentProof.utr}
-                          onChange={(e) => setPaymentProof(prev => ({ ...prev, utr: e.target.value }))}
-                          className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
-                        />
+                        <label className="text-sm text-[#7b6f66] mb-1 block">UTR / Transaction Reference *</label>
+                        <input type="text" placeholder="Transaction reference from your bank" value={paymentProof.utr} onChange={(e) => setPaymentProof(prev => ({ ...prev, utr: e.target.value }))} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"/>
                       </div>
                       <div>
                         <label className="text-sm text-[#7b6f66] mb-1 block">Payment Screenshot *</label>
                         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleScreenshotUpload} className="hidden"/>
                         {paymentProof.screenshotPreview ? (
                           <div className="relative">
-                            <img src={paymentProof.screenshotPreview} alt="Payment Screenshot" className="w-full h-40 object-cover rounded-2xl border border-[#241a14]/15"/>
-                            {uploadingScreenshot && (
-                              <div className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center">
-                                <div className="text-white text-sm font-semibold">Uploading...</div>
-                              </div>
-                            )}
-                            {!uploadingScreenshot && screenshotUrl && (
-                              <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">✓ Uploaded</div>
-                            )}
+                            <img src={paymentProof.screenshotPreview} alt="Screenshot" className="w-full h-40 object-cover rounded-2xl border border-[#241a14]/15"/>
+                            {uploadingScreenshot && <div className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center"><div className="text-white text-sm font-semibold">Uploading...</div></div>}
+                            {!uploadingScreenshot && screenshotUrl && <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">✓ Uploaded</div>}
                             <button onClick={() => { setPaymentProof(prev => ({ ...prev, screenshot: null, screenshotPreview: '' })); setScreenshotUrl(''); if (fileInputRef.current) fileInputRef.current.value = '' }} className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">✕</button>
                           </div>
                         ) : (
@@ -407,14 +370,7 @@ export default function Checkout() {
                 </div>
               ) : (
                 <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Enter coupon code"
-                    value={couponInput}
-                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                    onKeyDown={(e) => { if (e.key === 'Enter') handleApplyCoupon() }}
-                    className="flex-1 rounded-full border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition uppercase"
-                  />
+                  <input type="text" placeholder="Enter coupon code" value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} onKeyDown={(e) => { if (e.key === 'Enter') handleApplyCoupon() }} className="flex-1 rounded-full border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition uppercase"/>
                   <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleApplyCoupon} disabled={applyingCoupon || !couponInput.trim()} className="rounded-full bg-[#171313] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#3a2a21] disabled:opacity-50">
                     {applyingCoupon ? '...' : 'Apply'}
                   </motion.button>
@@ -463,7 +419,7 @@ export default function Checkout() {
             {needsPaymentProof && (
               <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4">
                 <p className="text-sm font-semibold text-amber-700 mb-1">⚠️ Important</p>
-                <p className="text-xs text-amber-600 leading-relaxed">Fill in all payment details and upload your screenshot before placing the order. Your order will be confirmed after payment verification.</p>
+                <p className="text-xs text-amber-600 leading-relaxed">Fill all payment details and upload screenshot before placing order. Order confirmed after payment verification.</p>
               </div>
             )}
 

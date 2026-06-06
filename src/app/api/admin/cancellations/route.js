@@ -3,11 +3,11 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const orders = await prisma.order.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: { cancellationRequest: true }
+    const requests = await prisma.cancellationRequest.findMany({
+      include: { order: true },
+      orderBy: { createdAt: 'desc' }
     })
-    return NextResponse.json({ orders }, { status: 200 })
+    return NextResponse.json({ requests }, { status: 200 })
   } catch (error) {
     return NextResponse.json({ message: error.message }, { status: 500 })
   }
