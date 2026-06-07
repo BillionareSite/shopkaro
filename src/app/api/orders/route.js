@@ -10,7 +10,7 @@ export async function POST(req) {
     const {
       name, phone, whatsapp, address, pincode, items, total, email,
       discount, couponCode, couponId, paymentMethod,
-      paymentSenderName, paymentUTR, paymentScreenshot
+      paymentSenderName, paymentUTR, paymentScreenshot, isSameDay
     } = body
 
     if (!name || !phone || !address || !pincode || !items || !total) {
@@ -21,6 +21,7 @@ export async function POST(req) {
     const year = new Date().getFullYear()
     const orderNumber = String(orderCount + 1).padStart(4, '0')
     const orderId = `ORD-${year}-${orderNumber}`
+    const needsVerification = paymentMethod === 'upi' || paymentMethod === 'bank'
 
     const order = await prisma.order.create({
       data: {
@@ -40,6 +41,7 @@ export async function POST(req) {
         paymentUTR: paymentUTR || '',
         paymentScreenshot: paymentScreenshot || '',
         paymentVerified: paymentMethod === 'cod',
+        isSameDay: isSameDay || false,
         status: 'pending'
       }
     })
@@ -65,20 +67,28 @@ export async function POST(req) {
       }
     }
 
-    const paymentLabels = { cod: 'Cash on Delivery', upi: 'UPI Payment', bank: 'Bank Transfer', card: 'Card Payment' }
-    const needsVerification = paymentMethod === 'upi' || paymentMethod === 'bank'
-    const itemsList = items.map(item => `  • ${item.name} x${item.quantity} — ₹${item.price * item.quantity}`).join('\n')
+    const paymentLabels = {
+      cod: 'Cash on Delivery',
+      upi: 'UPI Payment',
+      bank: 'Bank Transfer',
+      card: 'Card Payment'
+    }
+
+    const itemsList = items.map(item =>
+      `  • ${item.name} x${item.quantity} — ₹${item.price * item.quantity}`
+    ).join('\n')
 
     const telegramMessage = `
 🛍️ <b>New Order Received!</b>
+${isSameDay ? '\n⚡ <b>SAME DAY DELIVERY ORDER!</b>' : ''}
 
 🔖 <b>Order ID:</b> ${orderId}
 👤 <b>Customer:</b> ${name}
 📧 <b>Email:</b> ${email || 'Guest'}
 📱 <b>Phone:</b> ${phone}
 ${whatsapp ? `💬 <b>WhatsApp:</b> ${whatsapp}\n` : ''}📍 <b>Address:</b> ${address}, ${pincode}
-💳 <b>Payment:</b> ${paymentLabels[paymentMethod] || paymentMethod}
-${needsVerification ? `🔍 <b>Verification:</b> Pending\n👤 <b>Sender:</b> ${paymentSenderName}\n🔢 <b>UTR:</b> ${paymentUTR}\n` : ''}
+${isSameDay ? '⚡ <b>Delivery Type:</b> Same Day Delivery\n' : ''}💳 <b>Payment:</b> ${paymentLabels[paymentMethod] || paymentMethod}
+${needsVerification ? `🔍 <b>Payment Status:</b> Verification Pending\n👤 <b>Sender:</b> ${paymentSenderName}\n🔢 <b>UTR:</b> ${paymentUTR}\n` : ''}
 🛒 <b>Items:</b>
 ${itemsList}
 
@@ -91,7 +101,12 @@ ${discount > 0 ? `🎟️ <b>Coupon:</b> ${couponCode} (−₹${discount})\n` : 
 
     if (email) {
       try {
-        await sendOrderConfirmationEmail(email, { ...order, orderId, paymentMethod: paymentMethod || 'cod' }, items, needsVerification)
+        await sendOrderConfirmationEmail(
+          email,
+          { ...order, orderId, paymentMethod: paymentMethod || 'cod' },
+          items,
+          needsVerification
+        )
       } catch (emailError) {
         console.log('ORDER EMAIL ERROR:', emailError.message)
       }

@@ -22,10 +22,11 @@ export default function Checkout() {
   const [availablePayments, setAvailablePayments] = useState({ cod: true, upi: false, bank: false, card: false })
   const [storeSettings, setStoreSettings] = useState(null)
   const [loadingSettings, setLoadingSettings] = useState(true)
-  const [paymentProof, setPaymentProof] = useState({ senderName: '', utr: '', screenshot: null, screenshotPreview: '' })
+  const [paymentProof, setPaymentProof] = useState({ senderName: '', utr: '', screenshotPreview: '' })
   const [uploadingScreenshot, setUploadingScreenshot] = useState(false)
   const [screenshotUrl, setScreenshotUrl] = useState('')
-  const fileInputRef = useRef(null)
+  const upiFileRef = useRef(null)
+  const bankFileRef = useRef(null)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -90,13 +91,14 @@ export default function Checkout() {
     setCouponError('')
   }
 
-  const handleScreenshotUpload = async (e) => {
+  const handleScreenshotUpload = async (e, ref) => {
     const file = e.target.files[0]
     if (!file) return
     if (file.size > 5 * 1024 * 1024) { alert('File size must be less than 5MB!'); return }
     const preview = URL.createObjectURL(file)
-    setPaymentProof(prev => ({ ...prev, screenshot: file, screenshotPreview: preview }))
+    setPaymentProof(prev => ({ ...prev, screenshotPreview: preview }))
     setUploadingScreenshot(true)
+    setScreenshotUrl('')
     try {
       const formData = new FormData()
       formData.append('file', file)
@@ -106,13 +108,21 @@ export default function Checkout() {
         setScreenshotUrl(data.url)
       } else {
         alert('Screenshot upload failed: ' + data.message)
-        setPaymentProof(prev => ({ ...prev, screenshot: null, screenshotPreview: '' }))
+        setPaymentProof(prev => ({ ...prev, screenshotPreview: '' }))
+        setScreenshotUrl('')
       }
     } catch {
-      alert('Screenshot upload failed. Please try again.')
-      setPaymentProof(prev => ({ ...prev, screenshot: null, screenshotPreview: '' }))
+      alert('Upload failed. Please try again.')
+      setPaymentProof(prev => ({ ...prev, screenshotPreview: '' }))
+      setScreenshotUrl('')
     }
     setUploadingScreenshot(false)
+  }
+
+  const clearScreenshot = (ref) => {
+    setPaymentProof(prev => ({ ...prev, screenshotPreview: '' }))
+    setScreenshotUrl('')
+    if (ref?.current) ref.current.value = ''
   }
 
   const handlePlaceOrder = async () => {
@@ -125,6 +135,11 @@ export default function Checkout() {
     }
     if (cart.length === 0) { alert('Your cart is empty!'); return }
     setPlacing(true)
+
+    const isSameDay = cart.some(item =>
+      item.sameDayPincodes?.includes(form.pincode.trim())
+    )
+
     const res = await fetch('/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -137,6 +152,7 @@ export default function Checkout() {
         couponCode,
         couponId,
         paymentMethod,
+        isSameDay,
         paymentSenderName: needsPaymentProof ? paymentProof.senderName : '',
         paymentUTR: needsPaymentProof ? paymentProof.utr : '',
         paymentScreenshot: needsPaymentProof ? screenshotUrl : ''
@@ -160,6 +176,59 @@ export default function Checkout() {
     { id: 'card', icon: '💳', label: 'Card Payment', desc: 'Credit or Debit card' }
   ].filter(p => availablePayments[p.id])
 
+  const ScreenshotUploader = ({ fileRef }) => (
+    <div>
+      <label className="text-sm text-[#7b6f66] mb-1 block font-medium">Payment Screenshot *</label>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        onChange={(e) => handleScreenshotUpload(e, fileRef)}
+        className="hidden"
+      />
+      {paymentProof.screenshotPreview ? (
+        <div className="relative">
+          <img
+            src={paymentProof.screenshotPreview}
+            alt="Payment Screenshot"
+            className="w-full h-44 object-cover rounded-2xl border border-[#241a14]/15"
+          />
+          {uploadingScreenshot && (
+            <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-8 h-8 rounded-full border-2 border-white border-t-transparent animate-spin mx-auto mb-2"/>
+                <p className="text-white text-xs font-semibold">Uploading...</p>
+              </div>
+            </div>
+          )}
+          {!uploadingScreenshot && screenshotUrl && (
+            <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">✓ Uploaded</div>
+          )}
+          {!uploadingScreenshot && !screenshotUrl && (
+            <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">✕ Failed</div>
+          )}
+          <button
+            type="button"
+            onClick={() => clearScreenshot(fileRef)}
+            className="absolute top-2 left-2 bg-black/60 text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center hover:bg-black transition"
+          >
+            ✕
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          className="w-full border-2 border-dashed border-[#241a14]/20 rounded-2xl py-10 text-center hover:border-[#241a14]/40 hover:bg-white/50 transition"
+        >
+          <p className="text-3xl mb-2">📸</p>
+          <p className="text-sm font-semibold text-[#7b6f66]">Click to Upload Screenshot</p>
+          <p className="text-xs text-[#9b8f86] mt-1">JPG, PNG — max 5MB</p>
+        </button>
+      )}
+    </div>
+  )
+
   if (ordered) return (
     <main className="min-h-screen bg-[#f6f1ea] flex items-center justify-center px-6">
       <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center max-w-md w-full">
@@ -178,8 +247,16 @@ export default function Checkout() {
           </div>
         )}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <a href="/orders"><motion.button whileHover={{ scale: 1.05 }} className="rounded-full bg-[#171313] px-8 py-3.5 text-sm font-semibold text-white transition hover:bg-[#3a2a21]">View Orders</motion.button></a>
-          <a href="/products"><motion.button whileHover={{ scale: 1.05 }} className="rounded-full border border-[#241a14]/15 px-8 py-3.5 text-sm font-semibold text-[#171313] transition hover:bg-white/80">Continue Shopping</motion.button></a>
+          <a href="/orders">
+            <motion.button whileHover={{ scale: 1.05 }} className="rounded-full bg-[#171313] px-8 py-3.5 text-sm font-semibold text-white transition hover:bg-[#3a2a21]">
+              View Orders
+            </motion.button>
+          </a>
+          <a href="/products">
+            <motion.button whileHover={{ scale: 1.05 }} className="rounded-full border border-[#241a14]/15 px-8 py-3.5 text-sm font-semibold text-[#171313] transition hover:bg-white/80">
+              Continue Shopping
+            </motion.button>
+          </a>
         </div>
       </motion.div>
     </main>
@@ -209,25 +286,16 @@ export default function Checkout() {
                   <label className="text-sm text-[#7b6f66] mb-1 block">Phone Number</label>
                   <input type="tel" placeholder="9876543210" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"/>
                 </div>
-
-                {/* WhatsApp Field */}
                 <div>
                   <label className="text-sm text-[#7b6f66] mb-1 block">
                     WhatsApp Number <span className="text-[#9b8f86] text-xs">(Optional)</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg">💬</span>
-                    <input
-                      type="tel"
-                      placeholder="WhatsApp number (if different from phone)"
-                      value={form.whatsapp}
-                      onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
-                      className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] pl-10 pr-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
-                    />
+                    <input type="tel" placeholder="WhatsApp number for order updates" value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] pl-10 pr-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"/>
                   </div>
                   <p className="text-xs text-[#8c6048] mt-1.5">📲 Drop your WhatsApp number for faster order updates and delivery coordination!</p>
                 </div>
-
                 <div>
                   <label className="text-sm text-[#7b6f66] mb-1 block">Pincode</label>
                   <input type="text" placeholder="248001" value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"/>
@@ -253,7 +321,17 @@ export default function Checkout() {
               ) : (
                 <div className="space-y-3">
                   {paymentOptions.map(option => (
-                    <button key={option.id} onClick={() => setPaymentMethod(option.id)} className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition text-left ${paymentMethod === option.id ? 'border-[#171313] bg-[#171313]' : 'border-[#241a14]/15 bg-[#f6f1ea] hover:border-[#241a14]/30'}`}>
+                    <button
+                      key={option.id}
+                      onClick={() => {
+                        setPaymentMethod(option.id)
+                        setPaymentProof({ senderName: '', utr: '', screenshotPreview: '' })
+                        setScreenshotUrl('')
+                        if (upiFileRef.current) upiFileRef.current.value = ''
+                        if (bankFileRef.current) bankFileRef.current.value = ''
+                      }}
+                      className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition text-left ${paymentMethod === option.id ? 'border-[#171313] bg-[#171313]' : 'border-[#241a14]/15 bg-[#f6f1ea] hover:border-[#241a14]/30'}`}
+                    >
                       <span className="text-2xl">{option.icon}</span>
                       <div className="flex-1">
                         <p className={`font-semibold text-sm ${paymentMethod === option.id ? 'text-white' : 'text-[#171313]'}`}>{option.label}</p>
@@ -267,90 +345,67 @@ export default function Checkout() {
                 </div>
               )}
 
-              {/* UPI Details */}
+              {/* UPI Payment Section */}
               <AnimatePresence>
                 {paymentMethod === 'upi' && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mt-4">
-                    <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-4">
-                      <p className="text-sm font-bold text-blue-700 mb-2">📱 UPI Payment Instructions</p>
-                      <p className="text-sm text-blue-700 mb-1">Send ₹<span className="font-bold">{total}</span> to UPI ID:</p>
-                      <div className="bg-white border border-blue-200 rounded-xl px-4 py-2 flex items-center justify-between mb-2">
-                        <p className="font-mono font-bold text-blue-800 text-base">{storeSettings?.upiId || 'UPI ID not set'}</p>
-                        <button onClick={() => { navigator.clipboard.writeText(storeSettings?.upiId || ''); alert('UPI ID copied!') }} className="text-xs text-blue-600 hover:text-blue-800 border border-blue-300 px-2 py-1 rounded-lg transition">Copy</button>
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden">
+                    <div className="mt-4 space-y-4">
+                      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+                        <p className="text-sm font-bold text-blue-800 mb-2">📱 UPI Payment Instructions</p>
+                        <p className="text-sm text-blue-700 mb-2">Send <span className="font-bold">₹{total}</span> to UPI ID:</p>
+                        <div className="bg-white border border-blue-200 rounded-xl px-4 py-2.5 flex items-center justify-between">
+                          <p className="font-mono font-bold text-blue-900 text-base">{storeSettings?.upiId || 'UPI ID not configured'}</p>
+                          <button
+                            onClick={() => { navigator.clipboard.writeText(storeSettings?.upiId || ''); alert('UPI ID copied!') }}
+                            className="text-xs text-blue-600 hover:text-blue-800 border border-blue-300 bg-blue-50 px-3 py-1 rounded-lg transition font-medium"
+                          >
+                            Copy
+                          </button>
+                        </div>
+                        <p className="text-xs text-blue-600 mt-2">After payment, fill the details below and upload your screenshot.</p>
                       </div>
-                      <p className="text-xs text-blue-600">After payment, fill in the details below and upload a screenshot.</p>
-                    </div>
-                    <div className="space-y-3">
+
                       <div>
-                        <label className="text-sm text-[#7b6f66] mb-1 block">Sender Name (as in UPI app) *</label>
+                        <label className="text-sm text-[#7b6f66] mb-1 block font-medium">Sender Name (as in UPI app) *</label>
                         <input type="text" placeholder="Name shown in your UPI app" value={paymentProof.senderName} onChange={(e) => setPaymentProof(prev => ({ ...prev, senderName: e.target.value }))} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"/>
                       </div>
+
                       <div>
-                        <label className="text-sm text-[#7b6f66] mb-1 block">UTR / Transaction Number *</label>
-                        <input type="text" placeholder="12-digit UTR number from your payment app" value={paymentProof.utr} onChange={(e) => setPaymentProof(prev => ({ ...prev, utr: e.target.value }))} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"/>
+                        <label className="text-sm text-[#7b6f66] mb-1 block font-medium">UTR / Transaction Number *</label>
+                        <input type="text" placeholder="12-digit UTR from your payment app" value={paymentProof.utr} onChange={(e) => setPaymentProof(prev => ({ ...prev, utr: e.target.value }))} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"/>
                       </div>
-                      <div>
-                        <label className="text-sm text-[#7b6f66] mb-1 block">Payment Screenshot *</label>
-                        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleScreenshotUpload} className="hidden"/>
-                        {paymentProof.screenshotPreview ? (
-                          <div className="relative">
-                            <img src={paymentProof.screenshotPreview} alt="Screenshot" className="w-full h-40 object-cover rounded-2xl border border-[#241a14]/15"/>
-                            {uploadingScreenshot && <div className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center"><div className="text-white text-sm font-semibold">Uploading...</div></div>}
-                            {!uploadingScreenshot && screenshotUrl && <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">✓ Uploaded</div>}
-                            <button onClick={() => { setPaymentProof(prev => ({ ...prev, screenshot: null, screenshotPreview: '' })); setScreenshotUrl(''); if (fileInputRef.current) fileInputRef.current.value = '' }} className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">✕</button>
-                          </div>
-                        ) : (
-                          <button onClick={() => fileInputRef.current?.click()} className="w-full border-2 border-dashed border-[#241a14]/20 rounded-2xl py-8 text-center hover:border-[#241a14]/40 transition">
-                            <p className="text-3xl mb-2">📸</p>
-                            <p className="text-sm font-semibold text-[#7b6f66]">Upload Payment Screenshot</p>
-                            <p className="text-xs text-[#9b8f86] mt-1">JPG, PNG up to 5MB</p>
-                          </button>
-                        )}
-                      </div>
+
+                      <ScreenshotUploader fileRef={upiFileRef} />
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              {/* Bank Transfer Details */}
+              {/* Bank Transfer Section */}
               <AnimatePresence>
                 {paymentMethod === 'bank' && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mt-4">
-                    <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4 mb-4">
-                      <p className="text-sm font-bold text-purple-700 mb-2">🏦 Bank Transfer Instructions</p>
-                      <p className="text-sm text-purple-700 mb-3">Transfer ₹<span className="font-bold">{total}</span> to:</p>
-                      <div className="bg-white border border-purple-200 rounded-xl p-3 mb-2">
-                        <p className="text-sm text-purple-800 whitespace-pre-line font-mono">{storeSettings?.bankDetails || 'Bank details not configured'}</p>
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden">
+                    <div className="mt-4 space-y-4">
+                      <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4">
+                        <p className="text-sm font-bold text-purple-800 mb-2">🏦 Bank Transfer Instructions</p>
+                        <p className="text-sm text-purple-700 mb-2">Transfer <span className="font-bold">₹{total}</span> to:</p>
+                        <div className="bg-white border border-purple-200 rounded-xl p-3">
+                          <p className="text-sm text-purple-900 whitespace-pre-line font-mono leading-relaxed">{storeSettings?.bankDetails || 'Bank details not configured'}</p>
+                        </div>
+                        <p className="text-xs text-purple-600 mt-2">After transfer, fill the details below and upload your proof.</p>
                       </div>
-                      <p className="text-xs text-purple-600">After transfer, fill the details below and upload proof.</p>
-                    </div>
-                    <div className="space-y-3">
+
                       <div>
-                        <label className="text-sm text-[#7b6f66] mb-1 block">Account Holder Name *</label>
+                        <label className="text-sm text-[#7b6f66] mb-1 block font-medium">Account Holder Name *</label>
                         <input type="text" placeholder="Name on your bank account" value={paymentProof.senderName} onChange={(e) => setPaymentProof(prev => ({ ...prev, senderName: e.target.value }))} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"/>
                       </div>
+
                       <div>
-                        <label className="text-sm text-[#7b6f66] mb-1 block">UTR / Transaction Reference *</label>
+                        <label className="text-sm text-[#7b6f66] mb-1 block font-medium">UTR / Transaction Reference *</label>
                         <input type="text" placeholder="Transaction reference from your bank" value={paymentProof.utr} onChange={(e) => setPaymentProof(prev => ({ ...prev, utr: e.target.value }))} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"/>
                       </div>
-                      <div>
-                        <label className="text-sm text-[#7b6f66] mb-1 block">Payment Screenshot *</label>
-                        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleScreenshotUpload} className="hidden"/>
-                        {paymentProof.screenshotPreview ? (
-                          <div className="relative">
-                            <img src={paymentProof.screenshotPreview} alt="Screenshot" className="w-full h-40 object-cover rounded-2xl border border-[#241a14]/15"/>
-                            {uploadingScreenshot && <div className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center"><div className="text-white text-sm font-semibold">Uploading...</div></div>}
-                            {!uploadingScreenshot && screenshotUrl && <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">✓ Uploaded</div>}
-                            <button onClick={() => { setPaymentProof(prev => ({ ...prev, screenshot: null, screenshotPreview: '' })); setScreenshotUrl(''); if (fileInputRef.current) fileInputRef.current.value = '' }} className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">✕</button>
-                          </div>
-                        ) : (
-                          <button onClick={() => fileInputRef.current?.click()} className="w-full border-2 border-dashed border-[#241a14]/20 rounded-2xl py-8 text-center hover:border-[#241a14]/40 transition">
-                            <p className="text-3xl mb-2">📸</p>
-                            <p className="text-sm font-semibold text-[#7b6f66]">Upload Payment Proof</p>
-                            <p className="text-xs text-[#9b8f86] mt-1">JPG, PNG up to 5MB</p>
-                          </button>
-                        )}
-                      </div>
+
+                      <ScreenshotUploader fileRef={bankFileRef} />
                     </div>
                   </motion.div>
                 )}
@@ -406,8 +461,16 @@ export default function Checkout() {
                 <div className="flex justify-between text-sm"><span className="text-[#7b6f66]">Subtotal</span><span>₹{subtotal}</span></div>
                 {discount > 0 && <div className="flex justify-between text-sm"><span className="text-green-600">Discount ({couponCode})</span><span className="text-green-600">−₹{discount}</span></div>}
                 <div className="flex justify-between text-sm"><span className="text-[#7b6f66]">Delivery</span><span className="text-green-600">FREE</span></div>
-                {paymentMethod && <div className="flex justify-between text-sm"><span className="text-[#7b6f66]">Payment</span><span className="font-medium">{paymentOptions.find(p => p.id === paymentMethod)?.label || paymentMethod}</span></div>}
-                <div className="flex justify-between font-semibold text-lg pt-2 border-t border-[#241a14]/10"><span>Total</span><span>₹{total}</span></div>
+                {paymentMethod && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#7b6f66]">Payment</span>
+                    <span className="font-medium">{paymentOptions.find(p => p.id === paymentMethod)?.label || paymentMethod}</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-semibold text-lg pt-2 border-t border-[#241a14]/10">
+                  <span>Total</span>
+                  <span>₹{total}</span>
+                </div>
               </div>
               {discount > 0 && (
                 <div className="mt-3 bg-green-50 border border-green-200 rounded-2xl px-4 py-2 text-center">
@@ -419,7 +482,7 @@ export default function Checkout() {
             {needsPaymentProof && (
               <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4">
                 <p className="text-sm font-semibold text-amber-700 mb-1">⚠️ Important</p>
-                <p className="text-xs text-amber-600 leading-relaxed">Fill all payment details and upload screenshot before placing order. Order confirmed after payment verification.</p>
+                <p className="text-xs text-amber-600 leading-relaxed">Fill all payment details and upload screenshot before placing order. Your order will be confirmed after verification.</p>
               </div>
             )}
 

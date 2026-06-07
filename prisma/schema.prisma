@@ -50,6 +50,7 @@ model Order {
   paymentUTR          String                @default("")
   paymentScreenshot   String                @default("")
   paymentVerified     Boolean               @default(false)
+  isSameDay           Boolean               @default(false)
   status              String                @default("pending")
   createdAt           DateTime              @default(now())
   cancellationRequest CancellationRequest?
@@ -126,4 +127,13 @@ model StoreSettings {
   upiId          String   @default("")
   bankDetails    String   @default("")
   updatedAt      DateTime @updatedAt
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  icon      String   @default("🛍️")
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
 }

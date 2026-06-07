@@ -4,17 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from './components/Navbar'
 import config from '@/lib/config'
 
-const categories = [
-  { name: 'Electronics', image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop' },
-  { name: 'Fashion', image: 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=1200&auto=format&fit=crop' },
-  { name: 'Home', image: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1200&auto=format&fit=crop' },
-  { name: 'Beauty', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=1200&auto=format&fit=crop' },
-]
-
 export default function Home() {
   const [products, setProducts] = useState([])
   const [featured, setFeatured] = useState([])
+  const [categories, setCategories] = useState([])
   const [activeSlide, setActiveSlide] = useState(0)
+  const [addedMap, setAddedMap] = useState({})
 
   useEffect(() => {
     fetch('/api/products')
@@ -24,6 +19,10 @@ export default function Home() {
         setProducts(all)
         setFeatured(all.filter(p => p.featured))
       })
+
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(data => setCategories(data.categories || []))
   }, [])
 
   useEffect(() => {
@@ -38,6 +37,23 @@ export default function Home() {
 
   const nextSlide = () => setActiveSlide(current => (current + 1) % featured.length)
   const prevSlide = () => setActiveSlide(current => current === 0 ? featured.length - 1 : current - 1)
+
+  const handleAddToCart = (e, product) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (product.stock === 0) return
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]')
+    const existing = cart.find(item => item.id === product.id)
+    if (existing) {
+      existing.quantity += 1
+    } else {
+      cart.push({ ...product, quantity: 1 })
+    }
+    localStorage.setItem('cart', JSON.stringify(cart))
+    window.dispatchEvent(new Event('storage'))
+    setAddedMap(prev => ({ ...prev, [product.id]: true }))
+    setTimeout(() => setAddedMap(prev => ({ ...prev, [product.id]: false })), 1500)
+  }
 
   return (
     <main className="min-h-screen bg-[#f6f1ea] text-[#171313]">
@@ -65,28 +81,15 @@ export default function Home() {
               </a>
             </div>
             <div className="mt-6 grid max-w-lg grid-cols-3 gap-4 border-t border-[#241a14]/10 pt-4">
-              <div>
-                <p className="text-2xl font-semibold">100%</p>
-                <p className="mt-1 text-xs text-[#7b6f66]">Quality checked</p>
-              </div>
-              <div>
-                <p className="text-2xl font-semibold">Fast</p>
-                <p className="mt-1 text-xs text-[#7b6f66]">Dispatch</p>
-              </div>
-              <div>
-                <p className="text-2xl font-semibold">Easy</p>
-                <p className="mt-1 text-xs text-[#7b6f66]">Shopping</p>
-              </div>
+              <div><p className="text-2xl font-semibold">100%</p><p className="mt-1 text-xs text-[#7b6f66]">Quality checked</p></div>
+              <div><p className="text-2xl font-semibold">Fast</p><p className="mt-1 text-xs text-[#7b6f66]">Dispatch</p></div>
+              <div><p className="text-2xl font-semibold">Easy</p><p className="mt-1 text-xs text-[#7b6f66]">Shopping</p></div>
             </div>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.75, delay: 0.1 }} className="relative">
             <div className="overflow-hidden rounded-[2rem] bg-[#e8ddd1] shadow-2xl shadow-[#3d2619]/15">
-              <img
-                src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1400&auto=format&fit=crop"
-                alt={config.brandName + ' collection'}
-                className="h-[300px] w-full object-cover md:h-[360px]"
-              />
+              <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1400&auto=format&fit=crop" alt={config.brandName + ' collection'} className="h-[300px] w-full object-cover md:h-[360px]"/>
             </div>
             <div className="absolute bottom-4 left-4 right-4 rounded-3xl border border-white/55 bg-white/75 p-4 shadow-xl shadow-black/10 backdrop-blur-xl">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8c6048]">Today's mood</p>
@@ -117,37 +120,50 @@ export default function Home() {
           ) : (
             <div className="relative overflow-hidden rounded-[2rem] border border-[#241a14]/10 bg-white/65 shadow-xl shadow-[#3d2619]/5">
               <AnimatePresence mode="wait">
-                <motion.a
-                  key={currentFeatured.id}
-                  href={`/products/${currentFeatured.id}`}
-                  initial={{ opacity: 0, x: 35 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -35 }}
-                  transition={{ duration: 0.45 }}
-                  className="grid min-h-[300px] md:grid-cols-2"
-                >
-                  <div className="bg-[#eadfd4]">
-                    {currentFeatured.images?.[0] ? (
-                      <img src={currentFeatured.images[0]} alt={currentFeatured.name} className="h-full min-h-[240px] w-full object-cover"/>
-                    ) : (
-                      <div className="grid h-full min-h-[240px] place-items-center text-[#7b6f66]">No image</div>
-                    )}
-                  </div>
-                  <div className="flex flex-col justify-center p-6 md:p-8">
-                    <p className="w-fit rounded-full bg-[#171313] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white">Editor's pick</p>
-                    <h3 className="mt-4 text-2xl font-semibold tracking-tight md:text-4xl">{currentFeatured.name}</h3>
-                    <div className="mt-4 flex items-center gap-3">
-                      <span className="text-2xl font-semibold">₹{currentFeatured.price}</span>
-                      {currentFeatured.originalPrice > currentFeatured.price && (
-                        <span className="text-base text-[#9b8f86] line-through">₹{currentFeatured.originalPrice}</span>
+                {currentFeatured && (
+                  <motion.a
+                    key={currentFeatured.id}
+                    href={`/products/${currentFeatured.id}`}
+                    initial={{ opacity: 0, x: 35 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -35 }}
+                    transition={{ duration: 0.45 }}
+                    className="grid min-h-[300px] md:grid-cols-2"
+                  >
+                    <div className="bg-[#eadfd4]">
+                      {currentFeatured.images?.[0] ? (
+                        <img src={currentFeatured.images[0]} alt={currentFeatured.name} className="h-full min-h-[240px] w-full object-cover"/>
+                      ) : (
+                        <div className="grid h-full min-h-[240px] place-items-center text-[#7b6f66]">No image</div>
                       )}
                     </div>
-                    <p className="mt-4 max-w-md text-sm leading-6 text-[#6f6258]">
-                      A featured pick from {config.brandName}, selected for style, utility, and everyday value.
-                    </p>
-                    <div className="mt-5 w-fit rounded-full bg-[#171313] px-6 py-2.5 text-sm font-semibold text-white">Shop product</div>
-                  </div>
-                </motion.a>
+                    <div className="flex flex-col justify-center p-6 md:p-8">
+                      <p className="w-fit rounded-full bg-[#171313] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white">Editor's pick</p>
+                      <h3 className="mt-4 text-2xl font-semibold tracking-tight md:text-4xl">{currentFeatured.name}</h3>
+                      <div className="mt-4 flex items-center gap-3">
+                        <span className="text-2xl font-semibold">₹{currentFeatured.price}</span>
+                        {currentFeatured.originalPrice > currentFeatured.price && (
+                          <span className="text-base text-[#9b8f86] line-through">₹{currentFeatured.originalPrice}</span>
+                        )}
+                      </div>
+                      <p className="mt-4 max-w-md text-sm leading-6 text-[#6f6258]">
+                        A featured pick from {config.brandName}, selected for style, utility, and everyday value.
+                      </p>
+                      <div className="mt-5 flex items-center gap-3">
+                        <div className="w-fit rounded-full bg-[#171313] px-6 py-2.5 text-sm font-semibold text-white">Shop product</div>
+                        {currentFeatured.stock > 0 && (
+                          <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={(e) => handleAddToCart(e, currentFeatured)}
+                            className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${addedMap[currentFeatured.id] ? 'bg-green-600 text-white' : 'border border-[#241a14]/15 bg-white/55 text-[#171313] hover:bg-white'}`}
+                          >
+                            {addedMap[currentFeatured.id] ? '✓ Added!' : '🛒 Add to Cart'}
+                          </motion.button>
+                        )}
+                      </div>
+                    </div>
+                  </motion.a>
+                )}
               </AnimatePresence>
 
               {featured.length > 1 && (
@@ -156,11 +172,7 @@ export default function Home() {
                   <button onClick={nextSlide} className="absolute right-4 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/85 text-xl shadow-lg backdrop-blur transition hover:bg-white">›</button>
                   <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
                     {featured.map((item, index) => (
-                      <button
-                        key={item.id}
-                        onClick={() => setActiveSlide(index)}
-                        className={`h-2 rounded-full transition ${activeSlide === index ? 'w-8 bg-[#171313]' : 'w-2 bg-[#171313]/25'}`}
-                      />
+                      <button key={item.id} onClick={() => setActiveSlide(index)} className={`h-2 rounded-full transition ${activeSlide === index ? 'w-8 bg-[#171313]' : 'w-2 bg-[#171313]/25'}`}/>
                     ))}
                   </div>
                 </>
@@ -177,27 +189,29 @@ export default function Home() {
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8c6048]">Categories</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">Shop by mood</h2>
           </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {categories.map((cat, index) => (
-              <motion.a
-                key={cat.name}
-                href={`/products?category=${cat.name}`}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.45, delay: index * 0.06 }}
-                className="group overflow-hidden rounded-[1.6rem] bg-white shadow-lg shadow-[#3d2619]/5"
-              >
-                <div className="aspect-[4/5] overflow-hidden">
-                  <img src={cat.image} alt={cat.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105"/>
-                </div>
-                <div className="flex items-center justify-between p-5">
-                  <h3 className="font-semibold">{cat.name}</h3>
-                  <span className="text-[#8c6048]">→</span>
-                </div>
-              </motion.a>
-            ))}
-          </div>
+          {categories.length > 0 && (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {categories.slice(0, 4).map((cat, index) => (
+                <motion.a
+                  key={cat.id}
+                  href={`/products?category=${cat.name}`}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.45, delay: index * 0.06 }}
+                  className="group overflow-hidden rounded-[1.6rem] bg-white shadow-lg shadow-[#3d2619]/5"
+                >
+                  <div className="aspect-[4/5] overflow-hidden bg-[#eadfd4] flex items-center justify-center">
+                    <span className="text-7xl">{cat.icon}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-5">
+                    <h3 className="font-semibold">{cat.name}</h3>
+                    <span className="text-[#8c6048]">→</span>
+                  </div>
+                </motion.a>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -222,16 +236,15 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: '-60px' }}
                   transition={{ duration: 0.4, delay: Math.min(index * 0.03, 0.18) }}
-                  whileHover={{ y: -5 }}
-                  className="group overflow-hidden rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5"
+                  className="group overflow-hidden rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 flex flex-col"
                 >
-                  <div className="relative aspect-square overflow-hidden bg-[#eadfd4]">
+                  <div className="relative aspect-square overflow-hidden bg-[#eadfd4] flex-shrink-0">
                     {product.images?.[0] ? (
                       <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105"/>
                     ) : (
                       <div className="grid h-full place-items-center text-sm text-[#7b6f66]">No image</div>
                     )}
-                    {product.originalPrice > product.price && (
+                    {product.originalPrice > product.price && product.stock > 0 && (
                       <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#171313] shadow">
                         {Math.round((1 - product.price / product.originalPrice) * 100)}% off
                       </span>
@@ -241,17 +254,30 @@ export default function Home() {
                         <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#171313]">Out of Stock</span>
                       </div>
                     )}
+                    {/* Cart button top right */}
+                    {product.stock > 0 && (
+                      <motion.button
+                        whileTap={{ scale: 0.85 }}
+                        onClick={(e) => handleAddToCart(e, product)}
+                        className={`absolute top-2 right-2 w-9 h-9 rounded-full shadow-lg flex items-center justify-center text-sm transition ${addedMap[product.id] ? 'bg-green-500 text-white' : 'bg-white/90 hover:bg-white text-[#171313]'}`}
+                      >
+                        {addedMap[product.id] ? '✓' : '🛒'}
+                      </motion.button>
+                    )}
                   </div>
-                  <div className="p-4">
+                  <div className="p-4 flex flex-col flex-1">
                     <h3 className="truncate text-sm font-semibold md:text-base">{product.name}</h3>
-                    <div className="mt-2 flex items-center gap-2">
+                    <div className="mt-1 flex items-center gap-2">
                       <span className="font-semibold">₹{product.price}</span>
                       {product.originalPrice > product.price && (
                         <span className="text-sm text-[#9b8f86] line-through">₹{product.originalPrice}</span>
                       )}
                     </div>
-                    <div className="mt-4 rounded-full border border-[#241a14]/10 px-4 py-2 text-center text-sm font-semibold transition group-hover:bg-[#171313] group-hover:text-white">
-                      {product.stock === 0 ? 'Out of Stock' : 'View product'}
+                    {product.stock > 0 && product.stock <= 5 && (
+                      <p className="text-xs text-red-500 font-medium mt-1">Only {product.stock} left!</p>
+                    )}
+                    <div className="mt-3 rounded-full border border-[#241a14]/10 px-4 py-2 text-center text-sm font-semibold transition group-hover:bg-[#171313] group-hover:text-white mt-auto">
+                      {product.stock === 0 ? 'Out of Stock' : 'View Product'}
                     </div>
                   </div>
                 </motion.a>
@@ -272,15 +298,11 @@ export default function Home() {
             className="relative overflow-hidden rounded-[2rem] bg-[#171313] p-10 md:p-14 flex flex-col md:flex-row gap-6 justify-between items-center text-center md:text-left"
           >
             <div className="relative z-10">
-              <h3 className="text-3xl font-semibold text-white mb-2">Midnight Sale 🎉</h3>
+              <h3 className="text-3xl font-semibold text-white mb-2">Special Deals 🎉</h3>
               <p className="text-[#9b8f86]">Up to 70% off on selected items. Limited time only!</p>
             </div>
             <a href="/products" className="relative z-10 flex-shrink-0">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-[#171313] transition hover:bg-[#f6f1ea]"
-              >
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-[#171313] transition hover:bg-[#f6f1ea]">
                 Explore Deals
               </motion.button>
             </a>
@@ -293,14 +315,10 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl flex-col justify-between gap-8 md:flex-row">
           <div>
             <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center rounded-full bg-[#171313] text-xs font-semibold text-white">
-                {config.shortCode}
-              </div>
+              <div className="grid h-10 w-10 place-items-center rounded-full bg-[#171313] text-xs font-semibold text-white">{config.shortCode}</div>
               <h3 className="text-xl font-semibold">{config.brandName}</h3>
             </div>
-            <p className="mt-4 max-w-sm text-sm leading-6 text-[#7b6f66]">
-              Premium everyday products curated with style, quality, and trust.
-            </p>
+            <p className="mt-4 max-w-sm text-sm leading-6 text-[#7b6f66]">Premium everyday products curated with style, quality, and trust.</p>
           </div>
           <div className="grid grid-cols-2 gap-10 text-sm md:grid-cols-3">
             <div>
@@ -327,9 +345,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <p className="mx-auto mt-10 max-w-7xl border-t border-[#241a14]/10 pt-6 text-sm text-[#9b8f86]">
-          {config.copyright}
-        </p>
+        <p className="mx-auto mt-10 max-w-7xl border-t border-[#241a14]/10 pt-6 text-sm text-[#9b8f86]">{config.copyright}</p>
       </footer>
     </main>
   )

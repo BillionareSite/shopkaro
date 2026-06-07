@@ -1,311 +1,244 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import config from '@/lib/config'
 
 export default function AdminStats() {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [selectedUser, setSelectedUser] = useState(null)
-  const [resetEmail, setResetEmail] = useState('')
-  const [resetPassword, setResetPassword] = useState('')
-  const [resetMessage, setResetMessage] = useState('')
-  const [resetting, setResetting] = useState(false)
   const [search, setSearch] = useState('')
 
   useEffect(() => {
-    fetchStats()
-  }, [])
-
-  const fetchStats = () => {
     fetch('/api/admin/stats')
       .then(res => res.json())
-      .then(data => {
-        setStats(data)
-        setLoading(false)
-      })
-  }
-
-  const handleResetPassword = async () => {
-    if (!resetEmail || !resetPassword) {
-      setResetMessage('Please fill all fields!')
-      return
-    }
-    setResetting(true)
-    const res = await fetch('/api/admin/reset-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: resetEmail, newPassword: resetPassword })
-    })
-    const data = await res.json()
-    setResetMessage(data.message)
-    setResetting(false)
-    if (res.ok) {
-      setResetEmail('')
-      setResetPassword('')
-    }
-  }
+      .then(data => { setStats(data); setLoading(false) })
+  }, [])
 
   const statusColor = (status) => {
-    if (status === 'delivered') return 'text-green-400 bg-green-500/20 border-green-800'
-    if (status === 'confirmed') return 'text-blue-400 bg-blue-500/20 border-blue-800'
-    if (status === 'cancelled') return 'text-red-400 bg-red-500/20 border-red-800'
-    return 'text-yellow-400 bg-yellow-500/20 border-yellow-800'
+    if (status === 'delivered') return 'text-green-700 bg-green-50 border-green-200'
+    if (status === 'confirmed') return 'text-blue-700 bg-blue-50 border-blue-200'
+    if (status === 'cancelled') return 'text-red-700 bg-red-50 border-red-200'
+    return 'text-amber-700 bg-amber-50 border-amber-200'
   }
 
-  const filteredUsers = stats?.users?.filter(u =>
-    u.name.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase())
+  const filteredUsers = stats?.allUsers?.filter(u =>
+    u.name?.toLowerCase().includes(search.toLowerCase()) ||
+    u.email?.toLowerCase().includes(search.toLowerCase())
   ) || []
 
   if (loading) return (
-    <main className="min-h-screen bg-black text-white flex items-center justify-center">
-      <p className="text-gray-500">Loading stats...</p>
+    <main className="min-h-screen bg-[#f6f1ea] flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-8 h-8 rounded-full border-2 border-[#171313] border-t-transparent animate-spin mx-auto mb-3"/>
+        <p className="text-sm text-[#7b6f66]">Loading stats...</p>
+      </div>
     </main>
   )
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-[#f6f1ea] text-[#171313]">
 
       {/* Navbar */}
-      <nav className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-  <a href="/" className="text-2xl font-bold">{config.brandName}</a>
-  <span className="text-gray-400 text-sm">Admin — Stats</span>
-  <div className="flex items-center gap-4">
-    <a href="/admin" className="text-sm text-gray-400 hover:text-white transition">← Dashboard</a>
-    <a href="/admin/orders" className="text-sm text-gray-400 hover:text-white transition">📦 Orders</a>
-    <a href="/admin/tickets" className="text-sm text-gray-400 hover:text-white transition">🎧 Support</a>
-    <button
-      onClick={async () => {
-        await fetch('/api/admin/logout', { method: 'POST' })
-        window.location.href = '/admin-login'
-      }}
-      className="text-sm border border-red-900 text-red-500 px-3 py-1 rounded-lg hover:bg-red-500 hover:text-white transition"
-    >
-      Logout
-    </button>
-  </div>
-</nav>
+      <header className="sticky top-0 z-50 border-b border-[#241a14]/10 bg-[#f6f1ea]/95 backdrop-blur-xl px-5 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
+          <a href="/" className="flex items-center gap-3">
+            {config.logo ? (
+              <img src={config.logo} alt={config.brandName} className="h-9 w-9 rounded-full object-cover"/>
+            ) : (
+              <div className="grid h-9 w-9 place-items-center rounded-full bg-[#171313] text-xs font-semibold text-white">{config.shortCode}</div>
+            )}
+            <span className="text-lg font-semibold">{config.brandName}</span>
+          </a>
+          <span className="text-sm text-[#7b6f66]">Admin — Statistics</span>
+          <div className="flex items-center gap-3">
+            <a href="/admin" className="text-sm text-[#7b6f66] hover:text-[#171313] transition">← Dashboard</a>
+            <a href="/admin/orders" className="text-sm text-[#7b6f66] hover:text-[#171313] transition">📦 Orders</a>
+            <button
+              onClick={async () => { await fetch('/api/admin/logout', { method: 'POST' }); window.location.href = '/admin-login' }}
+              className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 transition hover:bg-red-100"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </header>
 
-      <div className="max-w-6xl mx-auto px-6 py-8 pb-16">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-3xl font-bold mb-8"
-        >
-          Dashboard Stats
-        </motion.h2>
+      <div className="mx-auto max-w-6xl px-5 py-8 pb-16">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8c6048]">Overview</p>
+          <h2 className="mt-1 text-3xl font-semibold">Statistics</h2>
+        </motion.div>
 
-        {/* Stats Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
-        >
-          <div className="bg-[#111] border border-gray-800 rounded-2xl p-5">
-            <p className="text-3xl mb-2">🛍️</p>
-            <p className="text-2xl font-bold">{stats.totalProducts}</p>
-            <p className="text-gray-400 text-sm">Total Products</p>
+        {/* Main Stats */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {[
+            { label: 'Total Orders', value: stats?.totalOrders || 0, icon: '📦', color: 'text-[#171313]' },
+            { label: 'Total Revenue', value: `₹${(stats?.totalRevenue || 0).toLocaleString()}`, icon: '💰', color: 'text-green-600' },
+            { label: 'Total Products', value: stats?.totalProducts || 0, icon: '🛍️', color: 'text-blue-600' },
+            { label: 'Total Users', value: stats?.totalUsers || 0, icon: '👥', color: 'text-purple-600' },
+          ].map((stat, i) => (
+            <div key={i} className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-5">
+              <p className="text-3xl mb-3">{stat.icon}</p>
+              <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+              <p className="text-xs text-[#9b8f86] mt-1">{stat.label}</p>
+            </div>
+          ))}
+        </motion.div>
+
+        {/* Order Status Breakdown */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {[
+            { label: 'Pending Orders', value: stats?.statusCounts?.pending || 0, color: 'text-amber-600 bg-amber-50 border-amber-200' },
+            { label: 'Confirmed Orders', value: stats?.statusCounts?.confirmed || 0, color: 'text-blue-600 bg-blue-50 border-blue-200' },
+            { label: 'Delivered Orders', value: stats?.statusCounts?.delivered || 0, color: 'text-green-600 bg-green-50 border-green-200' },
+            { label: 'Cancelled Orders', value: stats?.statusCounts?.cancelled || 0, color: 'text-red-600 bg-red-50 border-red-200' },
+          ].map((stat, i) => (
+            <div key={i} className={`rounded-[1.4rem] border p-5 ${stat.color}`}>
+              <p className="text-2xl font-bold">{stat.value}</p>
+              <p className="text-xs mt-1 opacity-80">{stat.label}</p>
+            </div>
+          ))}
+        </motion.div>
+
+        {/* Revenue + Coupons */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid md:grid-cols-2 gap-4 mb-8">
+          <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6">
+            <h3 className="text-lg font-semibold mb-4">💰 Revenue Breakdown</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center p-3 rounded-2xl bg-[#f6f1ea]">
+                <p className="text-sm text-[#7b6f66]">Total Revenue (non-cancelled)</p>
+                <p className="font-bold text-green-600">₹{(stats?.totalRevenue || 0).toLocaleString()}</p>
+              </div>
+              <div className="flex justify-between items-center p-3 rounded-2xl bg-[#f6f1ea]">
+                <p className="text-sm text-[#7b6f66]">Delivered Revenue</p>
+                <p className="font-bold text-green-700">₹{(stats?.deliveredRevenue || 0).toLocaleString()}</p>
+              </div>
+              <div className="flex justify-between items-center p-3 rounded-2xl bg-[#f6f1ea]">
+                <p className="text-sm text-[#7b6f66]">Active Coupons</p>
+                <p className="font-bold text-purple-600">{stats?.totalCoupons || 0}</p>
+              </div>
+              <div className="flex justify-between items-center p-3 rounded-2xl bg-[#f6f1ea]">
+                <p className="text-sm text-[#7b6f66]">Pending Orders</p>
+                <p className="font-bold text-amber-600">{stats?.pendingOrders || 0}</p>
+              </div>
+            </div>
           </div>
-          <div className="bg-[#111] border border-gray-800 rounded-2xl p-5">
-            <p className="text-3xl mb-2">📦</p>
-            <p className="text-2xl font-bold">{stats.totalOrders}</p>
-            <p className="text-gray-400 text-sm">Total Orders</p>
-          </div>
-          <div className="bg-[#111] border border-gray-800 rounded-2xl p-5">
-            <p className="text-3xl mb-2">💰</p>
-            <p className="text-2xl font-bold">₹{stats.totalRevenue.toLocaleString()}</p>
-            <p className="text-gray-400 text-sm">Total Revenue</p>
-          </div>
-          <div className="bg-[#111] border border-gray-800 rounded-2xl p-5">
-            <p className="text-3xl mb-2">👥</p>
-            <p className="text-2xl font-bold">{stats.totalUsers}</p>
-            <p className="text-gray-400 text-sm">Total Users</p>
+
+          {/* Low Stock */}
+          <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6">
+            <h3 className="text-lg font-semibold mb-4">⚠️ Low Stock Products</h3>
+            {!stats?.lowStockProducts?.length ? (
+              <div className="text-center py-6">
+                <p className="text-3xl mb-2">✅</p>
+                <p className="text-sm text-[#7b6f66]">All products are well stocked!</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-52 overflow-y-auto">
+                {stats.lowStockProducts.map(product => (
+                  <div key={product.id} className={`flex items-center justify-between p-3 rounded-2xl border ${product.stock === 0 ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      {product.images?.[0] && (
+                        <img src={product.images[0]} alt={product.name} className="w-8 h-8 rounded-xl object-cover flex-shrink-0"/>
+                      )}
+                      <p className={`text-sm font-semibold truncate ${product.stock === 0 ? 'text-red-700' : 'text-amber-700'}`}>{product.name}</p>
+                    </div>
+                    <span className={`text-xs font-bold px-2 py-1 rounded-full flex-shrink-0 ${product.stock === 0 ? 'text-red-700 bg-red-100' : 'text-amber-700 bg-amber-100'}`}>
+                      {product.stock === 0 ? 'Out of Stock' : `${product.stock} left`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </motion.div>
 
         {/* Recent Orders */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-[#111] border border-gray-800 rounded-2xl p-6 mb-8"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6 mb-8">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold">Recent Orders</h3>
-            <a href="/admin/orders" className="text-sm text-gray-400 hover:text-white transition">View all →</a>
+            <h3 className="text-lg font-semibold">📦 Recent Orders</h3>
+            <a href="/admin/orders" className="text-xs text-[#7b6f66] hover:text-[#171313] border border-[#241a14]/15 px-3 py-1.5 rounded-full transition">View All →</a>
           </div>
-          {stats.recentOrders.length === 0 ? (
-            <p className="text-gray-500 text-sm">No orders yet!</p>
+          {!stats?.recentOrders?.length ? (
+            <p className="text-sm text-[#9b8f86] text-center py-6">No orders yet</p>
           ) : (
             <div className="space-y-3">
               {stats.recentOrders.map(order => (
-                <div key={order.id} className="flex items-center justify-between bg-[#1a1a1a] border border-gray-800 rounded-xl p-3">
-                  <div>
-                    <p className="text-sm font-semibold">{order.name}</p>
-                    <p className="text-xs text-gray-500">{order.email}</p>
-                    <p className="text-xs text-gray-600 font-mono">#{order.id.slice(-8).toUpperCase()}</p>
+                <div key={order.id} className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-[#f6f1ea] border border-[#241a14]/10">
+                  <div className="flex items-center gap-4 flex-wrap flex-1 min-w-0">
+                    <div className="flex-shrink-0">
+                      <p className="text-xs text-[#9b8f86]">Order ID</p>
+                      <p className="text-sm font-mono font-bold">{order.orderId}</p>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <p className="text-xs text-[#9b8f86]">Customer</p>
+                      <p className="text-sm font-semibold">{order.name}</p>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <p className="text-xs text-[#9b8f86]">Date</p>
+                      <p className="text-sm">{new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</p>
+                    </div>
+                    {order.isSameDay && (
+                      <span className="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full flex-shrink-0">⚡ Same Day</span>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold">₹{order.total}</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(order.createdAt).toLocaleDateString('en-IN', {
-                        day: 'numeric', month: 'short'
-                      })}
-                    </p>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <p className="font-semibold text-sm">₹{order.total}</p>
+                    <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${statusColor(order.status)}`}>
+                      {order.status?.charAt(0).toUpperCase() + order.status?.slice(1)}
+                    </span>
                   </div>
-                  <span className={`text-xs font-bold px-2 py-1 rounded-full border ${statusColor(order.status)}`}>
-                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                  </span>
                 </div>
               ))}
             </div>
           )}
         </motion.div>
 
-        {/* Users List */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-[#111] border border-gray-800 rounded-2xl p-6 mb-8"
-        >
-          <h3 className="text-xl font-bold mb-4">All Users ({stats.totalUsers})</h3>
-
-          {/* Search */}
-          <div className="relative mb-4">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
-            <input
-              type="text"
-              placeholder="Search by name or email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
-            />
+        {/* Users */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <h3 className="text-lg font-semibold">👥 All Users ({stats?.allUsers?.length || 0})</h3>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9b8f86] text-sm">🔍</span>
+              <input
+                type="text"
+                placeholder="Search users..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="rounded-full border border-[#241a14]/15 bg-[#f6f1ea] pl-8 pr-4 py-2 text-sm placeholder-[#9b8f86] focus:outline-none transition"
+              />
+            </div>
           </div>
-
-          <div className="space-y-3">
-            {filteredUsers.map(user => (
-              <div
-                key={user.id}
-                className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center font-bold text-sm flex-shrink-0">
+          {filteredUsers.length === 0 ? (
+            <p className="text-sm text-[#9b8f86] text-center py-6">No users found</p>
+          ) : (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {filteredUsers.map(user => (
+                <div key={user.id} className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-[#f6f1ea] border border-[#241a14]/10">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-[#171313] text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
                       {user.name?.charAt(0).toUpperCase()}
                     </div>
-                    <div>
-                      <p className="font-semibold text-sm">{user.name}</p>
-                      <p className="text-gray-400 text-xs">{user.email}</p>
-                      <p className="text-gray-600 text-xs">
-                        Joined {new Date(user.createdAt).toLocaleDateString('en-IN', {
-                          day: 'numeric', month: 'short', year: 'numeric'
-                        })}
-                      </p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{user.name}</p>
+                      <p className="text-xs text-[#9b8f86] truncate">{user.email}</p>
+                      <p className="text-xs text-[#9b8f86]">Joined {new Date(user.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-400 bg-[#222] px-3 py-1 rounded-full border border-gray-700">
-                      {user.orders.length} order{user.orders.length !== 1 ? 's' : ''}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${user.verified ? 'text-green-700 bg-green-50 border-green-200' : 'text-amber-700 bg-amber-50 border-amber-200'}`}>
+                      {user.verified ? '✓ Verified' : '⏳ Unverified'}
                     </span>
-                    <button
-                      onClick={() => setSelectedUser(selectedUser?.id === user.id ? null : user)}
-                      className="text-xs px-3 py-1 rounded-lg border border-gray-600 text-gray-400 hover:border-white hover:text-white transition"
-                    >
-                      {selectedUser?.id === user.id ? 'Hide' : 'View Orders'}
-                    </button>
                   </div>
                 </div>
-
-                {/* User Orders */}
-                {selectedUser?.id === user.id && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 border-t border-gray-800 pt-4"
-                  >
-                    {user.orders.length === 0 ? (
-                      <p className="text-gray-500 text-sm">No orders yet</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {user.orders.map(order => (
-                          <div key={order.id} className="flex items-center justify-between bg-[#222] rounded-xl p-3">
-                            <div>
-                              <p className="text-xs font-mono text-gray-400">#{order.id.slice(-8).toUpperCase()}</p>
-                              <p className="text-xs text-gray-500">
-                                {new Date(order.createdAt).toLocaleDateString('en-IN', {
-                                  day: 'numeric', month: 'short', year: 'numeric'
-                                })}
-                              </p>
-                              <p className="text-xs text-gray-500 mt-1">{order.items.length} item{order.items.length !== 1 ? 's' : ''}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm font-bold">₹{order.total}</p>
-                              <span className={`text-xs font-bold px-2 py-1 rounded-full border ${statusColor(order.status)}`}>
-                                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Reset Password */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-[#111] border border-gray-800 rounded-2xl p-6"
-        >
-          <h3 className="text-xl font-bold mb-2">Reset User Password 🔐</h3>
-          <p className="text-gray-500 text-sm mb-6">Enter the user's email and set a new password for them</p>
-
-          <div className="space-y-4 max-w-md">
-            <div>
-              <label className="text-sm text-gray-400 mb-1 block">User Email</label>
-              <input
-                type="email"
-                placeholder="user@email.com"
-                value={resetEmail}
-                onChange={(e) => setResetEmail(e.target.value)}
-                className="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
-              />
+              ))}
             </div>
-            <div>
-              <label className="text-sm text-gray-400 mb-1 block">New Password</label>
-              <input
-                type="password"
-                placeholder="New password"
-                value={resetPassword}
-                onChange={(e) => setResetPassword(e.target.value)}
-                className="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition"
-              />
-            </div>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleResetPassword}
-              disabled={resetting}
-              className="w-full bg-white text-black font-semibold py-3 rounded-xl hover:bg-gray-100 transition"
-            >
-              {resetting ? 'Resetting...' : 'Reset Password'}
-            </motion.button>
-            {resetMessage && (
-              <p className={`text-sm text-center ${resetMessage.includes('success') ? 'text-green-400' : 'text-red-400'}`}>
-                {resetMessage}
-              </p>
-            )}
-          </div>
+          )}
         </motion.div>
       </div>
+
+      <footer className="border-t border-[#241a14]/10 px-5 py-10">
+        <p className="text-center text-sm text-[#9b8f86]">{config.copyright}</p>
+      </footer>
     </main>
   )
 }

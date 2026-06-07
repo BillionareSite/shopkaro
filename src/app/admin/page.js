@@ -10,8 +10,10 @@ const TABS = [
   { id: 'cancellations', label: 'Cancellations', icon: '❌' },
   { id: 'tickets', label: 'Support', icon: '🎧' },
   { id: 'coupons', label: 'Coupons', icon: '🎟️' },
+  { id: 'categories', label: 'Categories', icon: '🗂️' },
   { id: 'admins', label: 'Team', icon: '👥' },
   { id: 'settings', label: 'Settings', icon: '⚙️' },
+  { id: 'stats', label: 'Statistics', icon: '📈' },
 ]
 
 export default function AdminDashboard() {
@@ -66,6 +68,13 @@ export default function AdminDashboard() {
   const [adminMessage, setAdminMessage] = useState('')
   const [submittingAdmin, setSubmittingAdmin] = useState(false)
 
+  // Category states
+  const [categories, setCategories] = useState([])
+  const [categoryForm, setCategoryForm] = useState({ name: '', icon: '🛍️' })
+  const [editCategory, setEditCategory] = useState(null)
+  const [categoryMessage, setCategoryMessage] = useState('')
+  const [submittingCategory, setSubmittingCategory] = useState(false)
+
   const ALL_PERMISSIONS = [
     { id: 'view_orders', label: '📦 View Orders' },
     { id: 'update_order_status', label: '✅ Update Order Status' },
@@ -94,6 +103,7 @@ export default function AdminDashboard() {
     fetchCancellations()
     fetchStats()
     fetchSettings()
+    fetchCategories()
   }
 
   const fetchOrders = () => {
@@ -129,6 +139,12 @@ export default function AdminDashboard() {
     fetch('/api/admin/settings').then(r => r.json()).then(d => {
       if (d.settings) setSettings({ paymentMethods: d.settings.paymentMethods || { cod: true, upi: false, bank: false, card: false }, upiId: d.settings.upiId || '', bankDetails: d.settings.bankDetails || '' })
     })
+  }
+
+  const fetchCategories = () => {
+    fetch('/api/admin/categories')
+      .then(r => r.json())
+      .then(d => setCategories(d.categories || []))
   }
 
   const paymentLabels = { cod: 'Cash on Delivery', upi: 'UPI Payment', bank: 'Bank Transfer', card: 'Card Payment' }
@@ -280,6 +296,54 @@ export default function AdminDashboard() {
     setSavingSettings(false)
     setSettingsMessage(data.message)
     setTimeout(() => setSettingsMessage(''), 3000)
+  }
+
+  // Category functions
+  const handleAddCategory = async (e) => {
+    e.preventDefault()
+    if (!categoryForm.name.trim()) return
+    setSubmittingCategory(true)
+    setCategoryMessage('')
+    const res = await fetch('/api/admin/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(categoryForm)
+    })
+    const data = await res.json()
+    setSubmittingCategory(false)
+    setCategoryMessage(data.message)
+    if (res.ok) {
+      setCategoryForm({ name: '', icon: '🛍️' })
+      fetchCategories()
+      setTimeout(() => setCategoryMessage(''), 3000)
+    }
+  }
+
+  const handleToggleCategory = async (category) => {
+    await fetch('/api/admin/categories/' + category.id, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...category, isActive: !category.isActive })
+    })
+    fetchCategories()
+  }
+
+  const handleDeleteCategory = async (id) => {
+    if (!confirm('Delete this category? Make sure no products use it.')) return
+    const res = await fetch('/api/admin/categories/' + id, { method: 'DELETE' })
+    const data = await res.json()
+    if (!res.ok) { alert(data.message); return }
+    fetchCategories()
+  }
+
+  const handleUpdateCategory = async (category) => {
+    await fetch('/api/admin/categories/' + category.id, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: editCategory.name, icon: editCategory.icon, isActive: category.isActive, sortOrder: category.sortOrder })
+    })
+    setEditCategory(null)
+    fetchCategories()
   }
 
   const printBill = (order) => {
@@ -506,6 +570,7 @@ export default function AdminDashboard() {
                             <div><p className="text-xs text-[#9b8f86]">Payment</p><p className="text-sm">{paymentLabels[order.paymentMethod] || 'COD'}</p></div>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                            {order.isSameDay && <span className="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">⚡ Same Day</span>}
                             <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${statusColor(order.status)}`}>{order.status?.charAt(0).toUpperCase() + order.status?.slice(1)}</span>
                             <button onClick={() => setViewBill(order)} className="text-xs px-3 py-1.5 rounded-full border border-[#241a14]/15 text-[#6d625a] hover:bg-[#f6f1ea] transition">🧾</button>
                             <button onClick={() => printBill(order)} className="text-xs px-3 py-1.5 rounded-full border border-[#241a14]/15 text-[#6d625a] hover:bg-[#f6f1ea] transition">🖨️</button>
@@ -569,7 +634,10 @@ export default function AdminDashboard() {
                   <div className="grid grid-cols-2 gap-3">
                     <div><label className="text-sm text-[#7b6f66] mb-1 block">Category</label>
                       <select value={productForm.category} onChange={(e) => setProductForm({ ...productForm, category: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none transition">
-                        {['Electronics', 'Fashion', 'Home', 'Beauty', 'Sports', 'Books', 'Toys'].map(c => <option key={c} value={c}>{c}</option>)}
+                        {categories.length > 0
+                          ? categories.filter(c => c.isActive).map(c => <option key={c.id} value={c.name}>{c.icon} {c.name}</option>)
+                          : ['Electronics', 'Fashion', 'Home', 'Beauty', 'Sports', 'Books', 'Toys'].map(c => <option key={c} value={c}>{c}</option>)
+                        }
                       </select>
                     </div>
                     <div><label className="text-sm text-[#7b6f66] mb-1 block">Stock</label><input type="number" placeholder="100" value={productForm.stock} onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none transition" required/></div>
@@ -904,6 +972,159 @@ export default function AdminDashboard() {
             </motion.div>
           )}
 
+          {/* CATEGORIES TAB */}
+          {activeTab === 'categories' && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl space-y-6">
+
+              {/* Add Category Form */}
+              <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6">
+                <h3 className="text-lg font-semibold mb-6">Add New Category</h3>
+                <form onSubmit={handleAddCategory} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-[#7b6f66] mb-1 block">Category Name *</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Gaming, Furniture..."
+                        value={categoryForm.name}
+                        onChange={(e) => setCategoryForm(prev => ({ ...prev, name: e.target.value }))}
+                        className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-[#7b6f66] mb-1 block">Emoji Icon</label>
+                      <input
+                        type="text"
+                        placeholder="🛍️"
+                        value={categoryForm.icon}
+                        onChange={(e) => setCategoryForm(prev => ({ ...prev, icon: e.target.value }))}
+                        className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
+                      />
+                    </div>
+                  </div>
+                  {categoryForm.name && (
+                    <div className="flex items-center gap-3 bg-[#f6f1ea] rounded-2xl p-4">
+                      <span className="text-3xl">{categoryForm.icon || '🛍️'}</span>
+                      <div>
+                        <p className="text-xs text-[#9b8f86]">Preview</p>
+                        <p className="font-semibold">{categoryForm.name}</p>
+                      </div>
+                    </div>
+                  )}
+                  {categoryMessage && (
+                    <p className={`text-sm ${categoryMessage.includes('!') && !categoryMessage.includes('Cannot') && !categoryMessage.includes('already') ? 'text-green-600' : 'text-red-500'}`}>
+                      {categoryMessage}
+                    </p>
+                  )}
+                  <motion.button
+                    type="submit"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    disabled={submittingCategory || !categoryForm.name.trim()}
+                    className="w-full rounded-full bg-[#171313] py-3.5 text-sm font-semibold text-white transition hover:bg-[#3a2a21] disabled:opacity-50"
+                  >
+                    {submittingCategory ? 'Adding...' : '+ Add Category'}
+                  </motion.button>
+                </form>
+              </div>
+
+              {/* Categories List */}
+              <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6">
+                <h3 className="text-lg font-semibold mb-2">All Categories ({categories.length})</h3>
+                <p className="text-xs text-[#9b8f86] mb-6">Toggle to enable/disable. Disabled categories won't show in the store filters.</p>
+
+                {categories.length === 0 ? (
+                  <div className="text-center py-10">
+                    <p className="text-4xl mb-3">🗂️</p>
+                    <p className="text-sm text-[#7b6f66]">No categories yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {categories.map(category => (
+                      <div key={category.id} className={`rounded-2xl border-2 p-4 transition ${category.isActive ? 'border-[#241a14]/10 bg-[#f6f1ea]' : 'border-[#241a14]/5 bg-[#f6f1ea]/50 opacity-60'}`}>
+                        {editCategory?.id === category.id ? (
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <input
+                              type="text"
+                              value={editCategory.icon}
+                              onChange={(e) => setEditCategory(prev => ({ ...prev, icon: e.target.value }))}
+                              className="w-16 rounded-xl border border-[#241a14]/15 bg-white px-3 py-2 text-sm text-center focus:outline-none"
+                              placeholder="Icon"
+                            />
+                            <input
+                              type="text"
+                              value={editCategory.name}
+                              onChange={(e) => setEditCategory(prev => ({ ...prev, name: e.target.value }))}
+                              className="flex-1 rounded-xl border border-[#241a14]/15 bg-white px-3 py-2 text-sm focus:outline-none"
+                              placeholder="Category name"
+                            />
+                            <div className="flex gap-2 flex-shrink-0">
+                              <button
+                                onClick={() => handleUpdateCategory(category)}
+                                className="rounded-full bg-[#171313] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#3a2a21]"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => setEditCategory(null)}
+                                className="rounded-full border border-[#241a14]/15 px-4 py-2 text-xs font-semibold text-[#6d625a] transition hover:bg-white"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <span className="text-2xl flex-shrink-0">{category.icon}</span>
+                              <div className="min-w-0">
+                                <p className="font-semibold text-sm">{category.name}</p>
+                                <p className="text-xs text-[#9b8f86] mt-0.5">
+                                  {category.isActive ? '✓ Active in store' : '✕ Hidden from store'}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                              <button
+                                onClick={() => handleToggleCategory(category)}
+                                className={`w-11 h-6 rounded-full transition-colors duration-200 relative ${category.isActive ? 'bg-[#171313]' : 'bg-[#241a14]/20'}`}
+                              >
+                                <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all duration-200 ${category.isActive ? 'left-6' : 'left-1'}`}/>
+                              </button>
+                              <button
+                                onClick={() => setEditCategory({ id: category.id, name: category.name, icon: category.icon })}
+                                className="text-xs px-3 py-1.5 rounded-full border border-[#241a14]/15 text-[#6d625a] hover:bg-white transition"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteCategory(category.id)}
+                                className="text-xs px-3 py-1.5 rounded-full border border-red-200 text-red-500 hover:bg-red-50 transition"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-2xl bg-blue-50 border border-blue-200 p-4">
+                <p className="text-sm text-blue-700 font-semibold mb-1">ℹ️ How categories work</p>
+                <ul className="text-xs text-blue-600 space-y-1 list-disc list-inside">
+                  <li>Add categories here and they appear in product filters and store navigation</li>
+                  <li>Toggle off to hide a category from shoppers without deleting it</li>
+                  <li>You can't delete a category that has products assigned to it</li>
+                  <li>Icons support any emoji character</li>
+                </ul>
+              </div>
+            </motion.div>
+          )}
+
           {/* ADMINS TAB */}
           {activeTab === 'admins' && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
@@ -1038,6 +1259,103 @@ export default function AdminDashboard() {
               </motion.button>
             </motion.div>
           )}
+
+          {/* STATS TAB */}
+          {activeTab === 'stats' && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Total Orders', value: orders.length, icon: '📦', color: 'text-[#171313]' },
+                  { label: 'Revenue', value: `₹${orders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + o.total, 0).toLocaleString()}`, icon: '💰', color: 'text-green-600' },
+                  { label: 'Products', value: products.length, icon: '🛍️', color: 'text-blue-600' },
+                  { label: 'Open Tickets', value: tickets.filter(t => t.status === 'open').length, icon: '🎧', color: 'text-amber-600' }
+                ].map((stat, i) => (
+                  <div key={i} className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-5">
+                    <p className="text-3xl mb-3">{stat.icon}</p>
+                    <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                    <p className="text-xs text-[#9b8f86] mt-1">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Pending', value: orders.filter(o => o.status === 'pending').length, color: 'text-amber-600 bg-amber-50 border-amber-200' },
+                  { label: 'Confirmed', value: orders.filter(o => o.status === 'confirmed').length, color: 'text-blue-600 bg-blue-50 border-blue-200' },
+                  { label: 'Delivered', value: orders.filter(o => o.status === 'delivered').length, color: 'text-green-600 bg-green-50 border-green-200' },
+                  { label: 'Cancelled', value: orders.filter(o => o.status === 'cancelled').length, color: 'text-red-600 bg-red-50 border-red-200' }
+                ].map((stat, i) => (
+                  <div key={i} className={`rounded-[1.4rem] border p-5 ${stat.color}`}>
+                    <p className="text-2xl font-bold">{stat.value}</p>
+                    <p className="text-xs mt-1 opacity-80">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Low Stock */}
+              <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6">
+                <h3 className="text-lg font-semibold mb-4">⚠️ Low Stock Products</h3>
+                {products.filter(p => p.stock <= 5).length === 0 ? (
+                  <div className="text-center py-6">
+                    <p className="text-3xl mb-2">✅</p>
+                    <p className="text-sm text-[#7b6f66]">All products are well stocked!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {products.filter(p => p.stock <= 5).sort((a, b) => a.stock - b.stock).map(product => (
+                      <div key={product.id} className={`flex items-center justify-between p-3 rounded-2xl border ${product.stock === 0 ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
+                        <div className="flex items-center gap-3">
+                          {product.images?.[0] && <img src={product.images[0]} alt={product.name} className="w-10 h-10 rounded-xl object-cover flex-shrink-0"/>}
+                          <div>
+                            <p className={`text-sm font-semibold ${product.stock === 0 ? 'text-red-700' : 'text-amber-700'}`}>{product.name}</p>
+                            <p className="text-xs text-[#9b8f86]">{product.category}</p>
+                          </div>
+                        </div>
+                        <span className={`text-xs font-bold px-3 py-1 rounded-full ${product.stock === 0 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                          {product.stock === 0 ? '🚫 Out of Stock' : `⚠️ ${product.stock} left`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Recent Orders */}
+              <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Recent Orders</h3>
+                  <button onClick={() => setActiveTab('orders')} className="text-xs text-[#7b6f66] hover:text-[#171313] border border-[#241a14]/15 px-3 py-1.5 rounded-full transition">View All →</button>
+                </div>
+                <div className="space-y-3">
+                  {orders.slice(0, 8).map(order => (
+                    <div key={order.id} className="flex items-center justify-between gap-4 p-3 rounded-2xl bg-[#f6f1ea]">
+                      <div className="flex items-center gap-3 flex-wrap flex-1 min-w-0">
+                        <div>
+                          <p className="text-xs text-[#9b8f86]">Order ID</p>
+                          <p className="text-sm font-mono font-bold">{order.orderId}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-[#9b8f86]">Customer</p>
+                          <p className="text-sm">{order.name}</p>
+                        </div>
+                        {order.isSameDay && (
+                          <span className="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">⚡ Same Day</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-sm font-semibold">₹{order.total}</span>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${statusColor(order.status)}`}>
+                          {order.status?.charAt(0).toUpperCase() + order.status?.slice(1)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {orders.length === 0 && <p className="text-sm text-[#9b8f86] text-center py-4">No orders yet</p>}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
         </div>
       </main>
 
@@ -1046,19 +1364,45 @@ export default function AdminDashboard() {
         {viewScreenshot && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setViewScreenshot(null) }}>
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-[1.4rem] w-full max-w-lg overflow-hidden shadow-2xl">
-              <div className="p-4 border-b border-[#241a14]/10 flex items-center justify-between">
-                <div><p className="font-semibold">Payment Screenshot</p><p className="text-xs text-[#9b8f86]">{viewScreenshot.orderId}</p></div>
-                <button onClick={() => setViewScreenshot(null)} className="text-[#9b8f86] hover:text-[#171313] text-xl">✕</button>
+              <div className="bg-[#171313] p-5 flex items-center justify-between">
+                <div>
+                  <p className="text-white font-semibold">Payment Screenshot</p>
+                  <p className="text-white/60 text-xs mt-0.5">{viewScreenshot.orderId} — {viewScreenshot.name}</p>
+                </div>
+                <button onClick={() => setViewScreenshot(null)} className="text-white/60 hover:text-white text-xl transition">✕</button>
               </div>
-              <div className="p-4">
-                <img src={viewScreenshot.paymentScreenshot} alt="Payment" className="w-full object-contain max-h-96 rounded-2xl border border-[#241a14]/10 mb-4"/>
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  {viewScreenshot.paymentSenderName && <div className="rounded-2xl bg-[#f6f1ea] border border-[#241a14]/10 p-3"><p className="text-xs text-[#9b8f86] mb-1">Sender</p><p className="text-sm font-semibold">{viewScreenshot.paymentSenderName}</p></div>}
-                  {viewScreenshot.paymentUTR && <div className="rounded-2xl bg-[#f6f1ea] border border-[#241a14]/10 p-3"><p className="text-xs text-[#9b8f86] mb-1">UTR</p><p className="text-sm font-mono font-semibold">{viewScreenshot.paymentUTR}</p></div>}
+              <div className="p-5">
+                <div className="rounded-2xl overflow-hidden border-2 border-[#241a14]/10 mb-5">
+                  <img src={viewScreenshot.paymentScreenshot} alt="Payment Screenshot" className="w-full object-contain max-h-96 bg-[#f6f1ea]"/>
+                </div>
+                <div className="grid grid-cols-2 gap-3 mb-5">
+                  {viewScreenshot.paymentSenderName && (
+                    <div className="rounded-2xl bg-[#f6f1ea] border border-[#241a14]/10 p-4">
+                      <p className="text-xs text-[#9b8f86] mb-1 font-medium uppercase tracking-wider">Sender Name</p>
+                      <p className="text-sm font-bold text-[#171313]">{viewScreenshot.paymentSenderName}</p>
+                    </div>
+                  )}
+                  {viewScreenshot.paymentUTR && (
+                    <div className="rounded-2xl bg-[#f6f1ea] border border-[#241a14]/10 p-4">
+                      <p className="text-xs text-[#9b8f86] mb-1 font-medium uppercase tracking-wider">UTR / Transaction</p>
+                      <p className="text-sm font-bold font-mono text-[#171313]">{viewScreenshot.paymentUTR}</p>
+                    </div>
+                  )}
+                </div>
+                <div className="rounded-2xl bg-[#f6f1ea] border border-[#241a14]/10 p-4 mb-5">
+                  <p className="text-xs text-[#9b8f86] mb-1 font-medium uppercase tracking-wider">Order ID</p>
+                  <p className="text-sm font-bold font-mono text-[#171313]">{viewScreenshot.orderId}</p>
+                  <p className="text-xs text-[#9b8f86] mt-2">Amount: <span className="font-bold text-[#171313]">₹{viewScreenshot.total}</span></p>
+                  <p className="text-xs text-[#9b8f86] mt-1">Payment: <span className="font-bold text-[#171313]">{paymentLabels[viewScreenshot.paymentMethod] || viewScreenshot.paymentMethod}</span></p>
                 </div>
                 <div className="flex gap-3">
-                  <button onClick={() => setViewScreenshot(null)} className="flex-1 rounded-full border border-[#241a14]/15 py-3 text-sm font-semibold text-[#6d625a] transition hover:bg-[#f6f1ea]">Close</button>
-                  {!viewScreenshot.paymentVerified && <button onClick={() => { handleVerifyPayment(viewScreenshot.id); setViewScreenshot(null) }} className="flex-1 rounded-full bg-green-600 py-3 text-sm font-semibold text-white transition hover:bg-green-700">✅ Verify & Confirm</button>}
+                  <button onClick={() => setViewScreenshot(null)} className="flex-1 rounded-full border-2 border-[#241a14]/15 py-3 text-sm font-semibold text-[#171313] transition hover:bg-[#f6f1ea]">Close</button>
+                  {!viewScreenshot.paymentVerified && (
+                    <button onClick={() => { handleVerifyPayment(viewScreenshot.id); setViewScreenshot(null) }} className="flex-1 rounded-full bg-green-600 py-3 text-sm font-semibold text-white transition hover:bg-green-700">✅ Verify & Confirm</button>
+                  )}
+                  {viewScreenshot.paymentVerified && (
+                    <div className="flex-1 rounded-full bg-green-50 border-2 border-green-200 py-3 text-sm font-semibold text-green-700 text-center">✓ Already Verified</div>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -1133,7 +1477,10 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className="text-sm text-[#7b6f66] mb-1 block">Category</label>
                     <select value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none transition">
-                      {['Electronics', 'Fashion', 'Home', 'Beauty', 'Sports', 'Books', 'Toys'].map(c => <option key={c} value={c}>{c}</option>)}
+                      {categories.length > 0
+                        ? categories.filter(c => c.isActive).map(c => <option key={c.id} value={c.name}>{c.icon} {c.name}</option>)
+                        : ['Electronics', 'Fashion', 'Home', 'Beauty', 'Sports', 'Books', 'Toys'].map(c => <option key={c} value={c}>{c}</option>)
+                      }
                     </select>
                   </div>
                   <div><label className="text-sm text-[#7b6f66] mb-1 block">Stock</label><input type="number" value={editForm.stock} onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none transition"/></div>
