@@ -133,6 +133,7 @@ model Category {
   id        String   @id @default(cuid())
   name      String   @unique
   icon      String   @default("🛍️")
+  image     String   @default("")    // ← ADD THIS LINE
   isActive  Boolean  @default(true)
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())

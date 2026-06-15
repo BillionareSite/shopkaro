@@ -70,7 +70,7 @@ export default function AdminDashboard() {
 
   // Category states
   const [categories, setCategories] = useState([])
-  const [categoryForm, setCategoryForm] = useState({ name: '', icon: '🛍️' })
+  const [categoryForm, setCategoryForm] = useState({ name: '', icon: '🛍️', image: '' })
   const [editCategory, setEditCategory] = useState(null)
   const [categoryMessage, setCategoryMessage] = useState('')
   const [submittingCategory, setSubmittingCategory] = useState(false)
@@ -313,7 +313,7 @@ export default function AdminDashboard() {
     setSubmittingCategory(false)
     setCategoryMessage(data.message)
     if (res.ok) {
-      setCategoryForm({ name: '', icon: '🛍️' })
+      setCategoryForm({ name: '', icon: '🛍️', image: '' })
       fetchCategories()
       setTimeout(() => setCategoryMessage(''), 3000)
     }
@@ -340,7 +340,7 @@ export default function AdminDashboard() {
     await fetch('/api/admin/categories/' + category.id, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: editCategory.name, icon: editCategory.icon, isActive: category.isActive, sortOrder: category.sortOrder })
+      body: JSON.stringify({ name: editCategory.name, icon: editCategory.icon, image: editCategory.image || '', isActive: category.isActive, sortOrder: category.sortOrder })
     })
     setEditCategory(null)
     fetchCategories()
@@ -993,15 +993,28 @@ export default function AdminDashboard() {
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-[#7b6f66] mb-1 block">Emoji Icon</label>
-                      <input
-                        type="text"
-                        placeholder="🛍️"
-                        value={categoryForm.icon}
-                        onChange={(e) => setCategoryForm(prev => ({ ...prev, icon: e.target.value }))}
-                        className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
-                      />
-                    </div>
+  <label className="text-sm text-[#7b6f66] mb-1 block">Emoji Icon</label>
+  <input
+    type="text"
+    placeholder="🛍️"
+    value={categoryForm.icon}
+    onChange={(e) => setCategoryForm(prev => ({ ...prev, icon: e.target.value }))}
+    className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
+  />
+</div>
+<div className="md:col-span-2">
+  <label className="text-sm text-[#7b6f66] mb-1 block">Category Image URL <span className="text-[#9b8f86] text-xs">(from Cloudinary)</span></label>
+  <input
+    type="text"
+    placeholder="https://res.cloudinary.com/your-cloud/image/upload/..."
+    value={categoryForm.image}
+    onChange={(e) => setCategoryForm(prev => ({ ...prev, image: e.target.value }))}
+    className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
+  />
+  {categoryForm.image && (
+    <img src={categoryForm.image} alt="preview" className="mt-2 h-20 w-20 rounded-2xl object-cover border border-[#241a14]/10"/>
+  )}
+</div>
                   </div>
                   {categoryForm.name && (
                     <div className="flex items-center gap-3 bg-[#f6f1ea] rounded-2xl p-4">
@@ -1053,12 +1066,19 @@ export default function AdminDashboard() {
                               placeholder="Icon"
                             />
                             <input
-                              type="text"
-                              value={editCategory.name}
-                              onChange={(e) => setEditCategory(prev => ({ ...prev, name: e.target.value }))}
-                              className="flex-1 rounded-xl border border-[#241a14]/15 bg-white px-3 py-2 text-sm focus:outline-none"
-                              placeholder="Category name"
-                            />
+  type="text"
+  value={editCategory.name}
+  onChange={(e) => setEditCategory(prev => ({ ...prev, name: e.target.value }))}
+  className="flex-1 rounded-xl border border-[#241a14]/15 bg-white px-3 py-2 text-sm focus:outline-none"
+  placeholder="Category name"
+/>
+<input
+  type="text"
+  value={editCategory.image || ''}
+  onChange={(e) => setEditCategory(prev => ({ ...prev, image: e.target.value }))}
+  className="flex-1 rounded-xl border border-[#241a14]/15 bg-white px-3 py-2 text-sm focus:outline-none"
+  placeholder="Image URL (Cloudinary)"
+/>
                             <div className="flex gap-2 flex-shrink-0">
                               <button
                                 onClick={() => handleUpdateCategory(category)}
@@ -1093,7 +1113,7 @@ export default function AdminDashboard() {
                                 <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all duration-200 ${category.isActive ? 'left-6' : 'left-1'}`}/>
                               </button>
                               <button
-                                onClick={() => setEditCategory({ id: category.id, name: category.name, icon: category.icon })}
+                                onClick={() => setEditCategory({ id: category.id, name: category.name, icon: category.icon, image: category.image || '' })}
                                 className="text-xs px-3 py-1.5 rounded-full border border-[#241a14]/15 text-[#6d625a] hover:bg-white transition"
                               >
                                 Edit

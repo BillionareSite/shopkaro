@@ -14,7 +14,7 @@ export async function GET() {
 
 export async function POST(req) {
   try {
-    const { name, icon } = await req.json()
+    const { name, icon, image } = await req.json()
 
     if (!name?.trim()) {
       return NextResponse.json({ message: 'Category name is required' }, { status: 400 })
@@ -31,12 +31,13 @@ export async function POST(req) {
     const count = await prisma.category.count()
 
     const category = await prisma.category.create({
-      data: {
-        name: name.trim(),
-        icon: icon?.trim() || '🛍️',
-        isActive: true,
-        sortOrder: count + 1
-      }
+     data: {
+  name: name.trim(),
+  icon: icon?.trim() || '🛍️',
+  image: body?.image?.trim() || '',
+  isActive: true,
+  sortOrder: count + 1
+}
     })
 
     return NextResponse.json({ message: 'Category created!', category }, { status: 201 })
