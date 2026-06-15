@@ -168,9 +168,9 @@ export default function Products() {
                   </div>
 
                   {/* Limited stock warning — only show if 5 or less */}
-                  {product.stock > 0 && product.stock <= 5 && (
-                    <p className="text-xs text-red-500 font-medium mt-1">⚠️ Only {product.stock} left!</p>
-                  )}
+                 {product.stock > 0 && product.stock <= 5 && (
+                  <p className="text-xs text-red-500 font-medium mt-1">⚠️ Limited Stock!</p>
+                 )}
 
                   {/* View Product button */}
                   <div className={`mt-3 rounded-full border border-[#241a14]/10 px-4 py-2 text-center text-sm font-semibold transition mt-auto ${product.stock === 0 ? 'text-[#9b8f86] cursor-not-allowed' : 'group-hover:bg-[#171313] group-hover:text-white group-hover:border-[#171313]'}`}>

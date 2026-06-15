@@ -148,7 +148,7 @@ export default function AdminDashboard() {
   }
 
   const paymentLabels = { cod: 'Cash on Delivery', upi: 'UPI Payment', bank: 'Bank Transfer', card: 'Card Payment' }
-  const statusColor = (s) => s === 'delivered' ? 'text-green-700 bg-green-50 border-green-200' : s === 'confirmed' ? 'text-blue-700 bg-blue-50 border-blue-200' : s === 'cancelled' ? 'text-red-700 bg-red-50 border-red-200' : 'text-amber-700 bg-amber-50 border-amber-200'
+  const statusColor = (s) => s === 'delivered' ? 'text-green-700 bg-green-50 border-green-200' : s === 'confirmed' ? 'text-blue-700 bg-blue-50 border-blue-200' : s === 'cancelled' ? 'text-red-700 bg-red-50 border-red-200' : s === 'rejected' ? 'text-rose-700 bg-rose-50 border-rose-200' : 'text-amber-700 bg-amber-50 border-amber-200'
 
   // Order functions
   const handleStatusUpdate = async (id, status) => {
@@ -364,7 +364,7 @@ export default function AdminDashboard() {
   const openTickets = tickets.filter(t => t.status === 'open')
 
   return (
-    <div className="min-h-screen bg-[#f6f1ea] flex">
+    <div className="min-h-screen bg-[#f6f1ea] text-[#171313] flex [&_input]:text-[#171313] [&_textarea]:text-[#171313] [&_select]:text-[#171313] [&_option]:text-[#171313] [&_input]:placeholder:text-[#9b8f86] [&_textarea]:placeholder:text-[#9b8f86]">
 
       {/* Sidebar */}
       <aside className={`fixed left-0 top-0 h-full bg-[#171313] z-40 transition-all duration-300 flex flex-col ${sidebarOpen ? 'w-56' : 'w-16'}`}>
@@ -526,9 +526,9 @@ export default function AdminDashboard() {
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9b8f86]">🔍</span>
                   <input type="text" placeholder="Search orders..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full rounded-full border border-[#241a14]/15 bg-white pl-10 pr-4 py-2.5 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"/>
                 </div>
-                <div className="flex gap-2 overflow-x-auto">
-                  {['All', 'pending', 'confirmed', 'delivered', 'cancelled'].map(s => (
-                    <button key={s} onClick={() => setStatusFilter(s)} className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition flex-shrink-0 ${statusFilter === s ? 'bg-[#171313] text-white' : 'border border-[#241a14]/15 bg-white text-[#6d625a] hover:bg-[#f6f1ea]'}`}>
+                <div  className="flex gap-2 overflow-x-auto">
+                  {['All', 'pending', 'confirmed', 'delivered', 'cancelled', 'rejected'].map(s => (
+  <button key={s} onClick={() => setStatusFilter(s)} className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition flex-shrink-0 ${statusFilter === s ? 'bg-[#171313] text-white' : 'border border-[#241a14]/15 bg-white text-[#6d625a] hover:bg-[#f6f1ea]'}`}>
                       {s.charAt(0).toUpperCase() + s.slice(1)}
                     </button>
                   ))}
@@ -601,8 +601,8 @@ export default function AdminDashboard() {
                         <div className="flex items-center justify-between flex-wrap gap-3">
                           <p className="text-xs text-[#9b8f86]">📍 {order.address}, {order.pincode}</p>
                           <div className="flex gap-2 flex-wrap">
-                            {['pending', 'confirmed', 'delivered', 'cancelled'].map(s => (
-                              <button key={s} onClick={() => handleStatusUpdate(order.id, s)} disabled={order.status === s || !!updating} className={`text-xs px-3 py-1.5 rounded-full border transition ${order.status === s ? statusColor(s) + ' font-semibold' : 'border-[#241a14]/15 text-[#6d625a] hover:bg-[#f6f1ea]'} disabled:opacity-50`}>
+                            {['pending', 'confirmed', 'delivered', 'cancelled', 'rejected'].map(s => (
+  <button key={s} onClick={() => handleStatusUpdate(order.id, s)} disabled={order.status === s || !!updating} className={`text-xs px-3 py-1.5 rounded-full border transition ${order.status === s ? statusColor(s) + ' font-semibold' : 'border-[#241a14]/15 text-[#6d625a] hover:bg-[#f6f1ea]'} disabled:opacity-50`}>
                                 {s.charAt(0).toUpperCase() + s.slice(1)}
                               </button>
                             ))}

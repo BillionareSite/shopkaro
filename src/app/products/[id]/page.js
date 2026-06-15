@@ -213,7 +213,7 @@ export default function ProductDetail({ params }) {
             </div>
 
             <p className={`text-sm mb-4 font-medium ${product.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
-              {product.stock > 0 ? `✓ In Stock (${product.stock} available)` : '✕ Out of Stock'}
+              {product.stock > 0 ? (product.stock <= 5 ? '⚠️ Limited Stock!' : '✓ In Stock') : '✕ Out of Stock'}
             </p>
 
             {/* Same Day Delivery Checker */}
