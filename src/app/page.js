@@ -202,8 +202,12 @@ export default function Home() {
                   className="group overflow-hidden rounded-[1.6rem] bg-white shadow-lg shadow-[#3d2619]/5"
                 >
                   <div className="aspect-[4/5] overflow-hidden bg-[#eadfd4] flex items-center justify-center">
-                    <span className="text-7xl">{cat.icon}</span>
-                  </div>
+  {cat.image ? (
+    <img src={cat.image} alt={cat.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105"/>
+  ) : (
+    <span className="text-7xl">{cat.icon}</span>
+  )}
+</div>
                   <div className="flex items-center justify-between p-5">
                     <h3 className="font-semibold">{cat.name}</h3>
                     <span className="text-[#8c6048]">→</span>

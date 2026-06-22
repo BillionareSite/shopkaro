@@ -34,7 +34,7 @@ export async function POST(req) {
      data: {
   name: name.trim(),
   icon: icon?.trim() || '🛍️',
-  image: body?.image?.trim() || '',
+  image: image?.trim() || '',   // ← ADD THIS
   isActive: true,
   sortOrder: count + 1
 }

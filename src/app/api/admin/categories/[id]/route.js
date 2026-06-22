@@ -11,7 +11,7 @@ export async function PATCH(req, { params }) {
     data: {
   name: body.name?.trim(),
   icon: body.icon?.trim(),
-  image: body.image?.trim() ?? undefined,
+  image: body.image?.trim() ?? undefined,,
   isActive: body.isActive,
   sortOrder: body.sortOrder
 }
