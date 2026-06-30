@@ -201,13 +201,18 @@ export default function Home() {
                   transition={{ duration: 0.45, delay: index * 0.06 }}
                   className="group overflow-hidden rounded-[1.6rem] bg-white shadow-lg shadow-[#3d2619]/5"
                 >
+                  {/* ── FIXED: show image if available, fallback to emoji ── */}
                   <div className="aspect-[4/5] overflow-hidden bg-[#eadfd4] flex items-center justify-center">
-  {cat.image ? (
-    <img src={cat.image} alt={cat.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105"/>
-  ) : (
-    <span className="text-7xl">{cat.icon}</span>
-  )}
-</div>
+                    {cat.image && cat.image.trim() !== '' ? (
+                      <img
+                        src={cat.image}
+                        alt={cat.name}
+                        className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                      />
+                    ) : (
+                      <span className="text-7xl">{cat.icon}</span>
+                    )}
+                  </div>
                   <div className="flex items-center justify-between p-5">
                     <h3 className="font-semibold">{cat.name}</h3>
                     <span className="text-[#8c6048]">→</span>
@@ -258,7 +263,6 @@ export default function Home() {
                         <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#171313]">Out of Stock</span>
                       </div>
                     )}
-                    {/* Cart button top right */}
                     {product.stock > 0 && (
                       <motion.button
                         whileTap={{ scale: 0.85 }}
@@ -277,8 +281,9 @@ export default function Home() {
                         <span className="text-sm text-[#9b8f86] line-through">₹{product.originalPrice}</span>
                       )}
                     </div>
+                    {/* ── FIXED: show "Limited Stock!" instead of exact number ── */}
                     {product.stock > 0 && product.stock <= 5 && (
-                      <p className="text-xs text-red-500 font-medium mt-1">Only {product.stock} left!</p>
+                      <p className="text-xs text-red-500 font-medium mt-1">⚠️ Limited Stock!</p>
                     )}
                     <div className="mt-3 rounded-full border border-[#241a14]/10 px-4 py-2 text-center text-sm font-semibold transition group-hover:bg-[#171313] group-hover:text-white mt-auto">
                       {product.stock === 0 ? 'Out of Stock' : 'View Product'}

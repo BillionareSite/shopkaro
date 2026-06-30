@@ -8,13 +8,13 @@ export async function PATCH(req, { params }) {
 
     const category = await prisma.category.update({
       where: { id },
-    data: {
-  name: body.name?.trim(),
-  icon: body.icon?.trim(),
-  image: body.image?.trim() ?? undefined,,
-  isActive: body.isActive,
-  sortOrder: body.sortOrder
-}
+      data: {
+        name: body.name?.trim(),
+        icon: body.icon?.trim(),
+        image: body.image?.trim() ?? undefined,
+        isActive: body.isActive,
+        sortOrder: body.sortOrder
+      }
     })
 
     return NextResponse.json({ message: 'Category updated!', category }, { status: 200 })

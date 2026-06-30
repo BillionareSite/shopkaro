@@ -72,7 +72,7 @@ export default function Orders() {
     return 'text-amber-700 bg-amber-50 border-amber-200'
   }
 
-  const paymentLabels = { cod: 'Cash on Delivery', upi: 'UPI Payment', bank: 'Bank Transfer', card: 'Card Payment' }
+  const paymentLabels = { cod: 'Cash on Delivery', upi: 'UPI Payment', bank: 'Bank Transfer', card: 'Razorpay' }
 
   const filtered = filter === 'All' ? orders : orders.filter(o => o.status === filter)
 

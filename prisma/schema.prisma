@@ -50,6 +50,8 @@ model Order {
   paymentUTR          String                @default("")
   paymentScreenshot   String                @default("")
   paymentVerified     Boolean               @default(false)
+  razorpayOrderId     String                @default("")   // ← NEW
+  razorpayPaymentId   String                @default("")   // ← NEW
   isSameDay           Boolean               @default(false)
   status              String                @default("pending")
   createdAt           DateTime              @default(now())
@@ -133,7 +135,7 @@ model Category {
   id        String   @id @default(cuid())
   name      String   @unique
   icon      String   @default("🛍️")
-  image     String   @default("")    // ← ADD THIS LINE
+  image     String   @default("")    
   isActive  Boolean  @default(true)
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())

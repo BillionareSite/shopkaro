@@ -147,7 +147,7 @@ export default function AdminDashboard() {
       .then(d => setCategories(d.categories || []))
   }
 
-  const paymentLabels = { cod: 'Cash on Delivery', upi: 'UPI Payment', bank: 'Bank Transfer', card: 'Card Payment' }
+  const paymentLabels = { cod: 'Cash on Delivery', upi: 'UPI Payment', bank: 'Bank Transfer', card: 'Razorpay' }
   const statusColor = (s) => s === 'delivered' ? 'text-green-700 bg-green-50 border-green-200' : s === 'confirmed' ? 'text-blue-700 bg-blue-50 border-blue-200' : s === 'cancelled' ? 'text-red-700 bg-red-50 border-red-200' : s === 'rejected' ? 'text-rose-700 bg-rose-50 border-rose-200' : 'text-amber-700 bg-amber-50 border-amber-200'
 
   // Order functions
@@ -1239,7 +1239,7 @@ export default function AdminDashboard() {
                     { id: 'cod', icon: '💵', label: 'Cash on Delivery', desc: 'Customer pays on arrival' },
                     { id: 'upi', icon: '📱', label: 'UPI Payment', desc: 'Customer pays via UPI' },
                     { id: 'bank', icon: '🏦', label: 'Bank Transfer', desc: 'Customer transfers to bank' },
-                    { id: 'card', icon: '💳', label: 'Card Payment', desc: 'Credit or debit card' }
+                    { id: 'card', icon: '💳', label: 'Razor Pay', desc: 'Credit or debit card' }
                   ].map(option => (
                     <div key={option.id} className={`flex items-center justify-between p-4 rounded-2xl border-2 transition ${settings.paymentMethods[option.id] ? 'border-[#171313] bg-[#f6f1ea]' : 'border-[#241a14]/10 bg-[#f6f1ea]/50'}`}>
                       <div className="flex items-center gap-3">
