@@ -1,14 +1,30 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import config from '@/lib/config'
 
 export default function Contact() {
-  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
+  const [form, setForm] = useState({ name: '', email: '', whatsapp: '', subject: '', message: '' })
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
+  const [loggedInUser, setLoggedInUser] = useState(null)
+
+  useEffect(() => {
+    // Check if user is logged in
+    const token = localStorage.getItem('token')
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        setLoggedInUser(payload)
+        // Pre-fill name and email from token
+        setForm(f => ({ ...f, name: payload.name || '', email: payload.email || '' }))
+      } catch {
+        // Token invalid, treat as guest
+      }
+    }
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -18,7 +34,11 @@ export default function Contact() {
     const res = await fetch('/api/tickets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form)
+      body: JSON.stringify({
+        ...form,
+        isGuest: !loggedInUser,
+        userId: loggedInUser?.id || null
+      })
     })
     setSubmitting(false)
     if (res.ok) { setSubmitted(true) }
@@ -118,25 +138,95 @@ export default function Contact() {
 
           {/* Contact Form */}
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6">
-            <h3 className="text-xl font-semibold mb-6">Send a Message ✉️</h3>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold">Send a Message ✉️</h3>
+              {/* Badge showing logged in or guest */}
+              {loggedInUser ? (
+                <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-green-50 border border-green-200 text-green-700">
+                  ✓ Signed In
+                </span>
+              ) : (
+                <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700">
+                  👤 Guest
+                </span>
+              )}
+            </div>
+
+            {/* Info banner for guests */}
+            {!loggedInUser && (
+              <div className="mb-5 rounded-2xl bg-blue-50 border border-blue-200 p-4">
+                <p className="text-xs text-blue-700 font-semibold mb-1">💡 Have an account?</p>
+                <p className="text-xs text-blue-600">
+                  <a href="/auth/login?redirect=/contact" className="underline font-semibold">Sign in</a> for faster support — we can link your message to your orders automatically.
+                </p>
+              </div>
+            )}
+
+            {/* Info banner for logged in users */}
+            {loggedInUser && (
+              <div className="mb-5 rounded-2xl bg-green-50 border border-green-200 p-4">
+                <p className="text-xs text-green-700 font-semibold">✓ Sending as {loggedInUser.name}</p>
+                <p className="text-xs text-green-600 mt-0.5">Your message will be linked to your account for faster support.</p>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
-              {[
-                { label: 'Full Name', key: 'name', type: 'text', placeholder: 'Rahul Sharma' },
-                { label: 'Email Address', key: 'email', type: 'email', placeholder: 'you@email.com' },
-                { label: 'Subject', key: 'subject', type: 'text', placeholder: 'e.g. Order issue...' }
-              ].map(field => (
-                <div key={field.key}>
-                  <label className="text-sm text-[#7b6f66] mb-1 block">{field.label}</label>
+              <div>
+                <label className="text-sm text-[#7b6f66] mb-1 block">Full Name</label>
+                <input
+                  type="text"
+                  placeholder="Rahul Sharma"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  readOnly={!!loggedInUser}
+                  className={`w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm text-[#171313] placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition ${loggedInUser ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-[#7b6f66] mb-1 block">Email Address</label>
+                <input
+                  type="email"
+                  placeholder="you@email.com"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  readOnly={!!loggedInUser}
+                  className={`w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm text-[#171313] placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition ${loggedInUser ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  required
+                />
+              </div>
+
+              {/* WhatsApp field */}
+              <div>
+                <label className="text-sm text-[#7b6f66] mb-1 block">
+                  WhatsApp Number <span className="text-[#9b8f86] text-xs">(Optional)</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg">💬</span>
                   <input
-                    type={field.type}
-                    placeholder={field.placeholder}
-                    value={form[field.key]}
-                    onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
-                    className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm text-[#171313] placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
-                    required
+                    type="tel"
+                    placeholder="Your WhatsApp number for quick reply"
+                    value={form.whatsapp}
+                    onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+                    className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] pl-10 pr-4 py-3 text-sm text-[#171313] placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
                   />
                 </div>
-              ))}
+                <p className="text-xs text-[#8c6048] mt-1.5">📲 Adding WhatsApp helps us reply faster!</p>
+              </div>
+
+              <div>
+                <label className="text-sm text-[#7b6f66] mb-1 block">Subject</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Order issue, Product query..."
+                  value={form.subject}
+                  onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                  className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm text-[#171313] placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
+                  required
+                />
+              </div>
+
               <div>
                 <label className="text-sm text-[#7b6f66] mb-1 block">Message</label>
                 <textarea
@@ -148,13 +238,15 @@ export default function Contact() {
                   required
                 />
               </div>
+
               {error && <p className="text-red-500 text-sm">{error}</p>}
+
               <motion.button
                 type="submit"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 disabled={submitting}
-                className="w-full rounded-full bg-[#171313] py-3.5 text-sm font-semibold text-white transition hover:bg-[#3a2a21]"
+                className="w-full rounded-full bg-[#171313] py-3.5 text-sm font-semibold text-white transition hover:bg-[#3a2a21] disabled:opacity-50"
               >
                 {submitting ? 'Sending...' : 'Send Message 📬'}
               </motion.button>

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(req) {
   try {
-    const { name, email, subject, message } = await req.json()
+    const { name, email, whatsapp, subject, message, isGuest, userId } = await req.json()
 
     if (!name || !email || !subject || !message) {
       return NextResponse.json({ message: 'All fields are required' }, { status: 400 })
@@ -19,9 +19,12 @@ export async function POST(req) {
       data: {
         name,
         email,
+        whatsapp: whatsapp || '',
         subject,
         message,
-        messages: [initialMessage]
+        messages: [initialMessage],
+        isGuest: isGuest === true,
+        userId: userId || null
       }
     })
 
