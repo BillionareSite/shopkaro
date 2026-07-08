@@ -128,11 +128,11 @@ export default function Home() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -35 }}
                     transition={{ duration: 0.45 }}
-                    className="grid min-h-[300px] md:grid-cols-2"
+                    className="grid min-h-[400px] md:grid-cols-2"
                   >
                     <div className="bg-[#eadfd4]">
                       {currentFeatured.images?.[0] ? (
-                        <img src={currentFeatured.images[0]} alt={currentFeatured.name} className="h-full min-h-[240px] w-full object-cover"/>
+                        <img src={currentFeatured.images[0]} alt={currentFeatured.name} className="h-full min-h-[400px] w-full object-cover object-top"/>
                       ) : (
                         <div className="grid h-full min-h-[240px] place-items-center text-[#7b6f66]">No image</div>
                       )}

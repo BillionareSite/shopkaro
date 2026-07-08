@@ -3,11 +3,13 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(req) {
   try {
-    const { orderId, reason, details } = await req.json()
+    const { orderId, reason, details, type } = await req.json()
 
     if (!orderId || !reason) {
       return NextResponse.json({ message: 'Order ID and reason are required' }, { status: 400 })
     }
+
+    const requestType = type === 'return' ? 'return' : 'cancellation'
 
     const order = await prisma.order.findUnique({
       where: { id: orderId },
@@ -18,30 +20,44 @@ export async function POST(req) {
       return NextResponse.json({ message: 'Order not found!' }, { status: 404 })
     }
 
-    if (order.status === 'delivered') {
-      return NextResponse.json({ message: 'Cannot cancel a delivered order!' }, { status: 400 })
-    }
-
-    if (order.status === 'cancelled') {
-      return NextResponse.json({ message: 'Order is already cancelled!' }, { status: 400 })
-    }
-
     if (order.cancellationRequest) {
-      return NextResponse.json({ message: 'Cancellation request already submitted!' }, { status: 400 })
+      return NextResponse.json({ message: 'A request has already been submitted for this order!' }, { status: 400 })
+    }
+
+    // Cancellation only allowed on non-delivered, non-cancelled orders
+    if (requestType === 'cancellation') {
+      if (order.status === 'delivered') {
+        return NextResponse.json({ message: 'Cannot cancel a delivered order. You can request a return instead.' }, { status: 400 })
+      }
+      if (order.status === 'cancelled') {
+        return NextResponse.json({ message: 'Order is already cancelled!' }, { status: 400 })
+      }
+    }
+
+    // Return only allowed on delivered orders
+    if (requestType === 'return') {
+      if (order.status !== 'delivered') {
+        return NextResponse.json({ message: 'Return can only be requested for delivered orders.' }, { status: 400 })
+      }
     }
 
     const cancellationRequest = await prisma.cancellationRequest.create({
       data: {
         orderId: order.id,
+        type: requestType,
         reason,
         details: details || '',
         status: 'pending'
       }
     })
 
-    return NextResponse.json({ message: 'Cancellation request submitted!', cancellationRequest }, { status: 201 })
+    return NextResponse.json({
+      message: requestType === 'return' ? 'Return request submitted!' : 'Cancellation request submitted!',
+      cancellationRequest
+    }, { status: 201 })
+
   } catch (error) {
-    console.log('CANCELLATION ERROR:', error.message)
+    console.log('CANCELLATION/RETURN ERROR:', error.message)
     return NextResponse.json({ message: error.message }, { status: 500 })
   }
 }

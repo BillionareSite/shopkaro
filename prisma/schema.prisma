@@ -68,6 +68,7 @@ model CancellationRequest {
   id        String   @id @default(cuid())
   orderId   String   @unique
   order     Order    @relation(fields: [orderId], references: [id])
+  type      String   @default("cancellation")
   reason    String
   details   String   @default("")
   status    String   @default("pending")
@@ -148,4 +149,19 @@ model Category {
   isActive  Boolean  @default(true)
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
+}
+
+model PreownedProduct {
+  id              String   @id @default(cuid())
+  name            String
+  description     String
+  price           Float
+  originalPrice   Float
+  images          String[]
+  category        String
+  condition       String   @default("good")
+  stock           Int      @default(1)
+  featured        Boolean  @default(false)
+  sameDayPincodes String[] @default([])
+  createdAt       DateTime @default(now())
 }

@@ -12,6 +12,7 @@ const TABS = [
   { id: 'coupons', label: 'Coupons', icon: '🎟️' },
   { id: 'categories', label: 'Categories', icon: '🗂️' },
   { id: 'users', label: 'Users', icon: '👤' },
+  { id: 'preowned', label: 'Preowned', icon: '♻️' },
   { id: 'admins', label: 'Team', icon: '👥' },
   { id: 'settings', label: 'Settings', icon: '⚙️' },
   { id: 'stats', label: 'Statistics', icon: '📈' },
@@ -28,6 +29,14 @@ export default function AdminDashboard() {
   const [coupons, setCoupons] = useState([])
   const [admins, setAdmins] = useState([])
   const [users, setUsers] = useState([])
+  const [preownedProducts, setPreownedProducts] = useState([])
+  const [preownedForm, setPreownedForm] = useState({ name: '', description: '', price: '', originalPrice: '', images: [''], category: '', condition: 'good', stock: '1', featured: false, sameDayPincodes: [] })
+  const [preownedPincodeInput, setPreownedPincodeInput] = useState('')
+  const [preownedMessage, setPreownedMessage] = useState('')
+  const [submittingPreowned, setSubmittingPreowned] = useState(false)
+  const [editPreowned, setEditPreowned] = useState(null)
+  const [editPreownedForm, setEditPreownedForm] = useState(null)
+  const [editPreownedPincodeInput, setEditPreownedPincodeInput] = useState('')
   const [cancellations, setCancellations] = useState([])
   const [settings, setSettings] = useState({ paymentMethods: { cod: true, upi: false, bank: false, card: false }, upiId: '', bankDetails: '' })
   const [loading, setLoading] = useState({})
@@ -92,7 +101,7 @@ export default function AdminDashboard() {
   const fetchAll = async () => {
     fetchOrders(); fetchProducts(); fetchTickets(); fetchCoupons()
     fetchAdmins(); fetchCancellations(); fetchStats(); fetchSettings()
-    fetchCategories(); fetchUsers()
+    fetchCategories(); fetchUsers(); fetchPreownedProducts()
   }
 
   const fetchOrders = () => {
@@ -112,6 +121,48 @@ export default function AdminDashboard() {
   }
   const fetchCategories = () => { fetch('/api/admin/categories').then(r => r.json()).then(d => setCategories(d.categories || [])) }
   const fetchUsers = () => { fetch('/api/admin/users').then(r => r.json()).then(d => setUsers(d.users || [])) }
+  const fetchPreownedProducts = () => { fetch('/api/preowned/products').then(r => r.json()).then(d => setPreownedProducts(d.products || [])) }
+
+  const handleAddPreowned = async (e) => {
+    e.preventDefault()
+    setSubmittingPreowned(true)
+    const res = await fetch('/api/preowned/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...preownedForm, images: preownedForm.images.filter(u => u.trim()), price: parseFloat(preownedForm.price), originalPrice: parseFloat(preownedForm.originalPrice || preownedForm.price), stock: parseInt(preownedForm.stock) })
+    })
+    const data = await res.json()
+    setPreownedMessage(data.message)
+    setSubmittingPreowned(false)
+    if (res.ok) {
+      setPreownedForm({ name: '', description: '', price: '', originalPrice: '', images: [''], category: '', condition: 'good', stock: '1', featured: false, sameDayPincodes: [] })
+      setPreownedPincodeInput('')
+      fetchPreownedProducts()
+      setTimeout(() => setPreownedMessage(''), 3000)
+    }
+  }
+
+  const handleUpdatePreowned = async () => {
+    setUpdating('preowned')
+    await fetch('/api/preowned/products/' + editPreowned.id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...editPreownedForm, images: editPreownedForm.images.filter(u => u.trim()), price: parseFloat(editPreownedForm.price), originalPrice: parseFloat(editPreownedForm.originalPrice || editPreownedForm.price), stock: parseInt(editPreownedForm.stock) })
+    })
+    setUpdating(null); setEditPreowned(null); setEditPreownedForm(null)
+    fetchPreownedProducts()
+  }
+
+  const handleDeletePreowned = async (id) => {
+    if (!confirm('Delete this preowned product?')) return
+    await fetch('/api/preowned/products/' + id, { method: 'DELETE' })
+    fetchPreownedProducts()
+  }
+
+  const togglePreownedFeatured = async (product) => {
+    await fetch('/api/preowned/products/' + product.id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...product, featured: !product.featured }) })
+    fetchPreownedProducts()
+  }
 
   const paymentLabels = { cod: 'Cash on Delivery', upi: 'UPI Payment', bank: 'Bank Transfer', card: 'Razorpay' }
   const statusColor = (s) => s === 'delivered' ? 'text-green-700 bg-green-50 border-green-200' : s === 'confirmed' ? 'text-blue-700 bg-blue-50 border-blue-200' : s === 'cancelled' ? 'text-red-700 bg-red-50 border-red-200' : s === 'rejected' ? 'text-rose-700 bg-rose-50 border-rose-200' : 'text-amber-700 bg-amber-50 border-amber-200'
@@ -883,6 +934,130 @@ export default function AdminDashboard() {
                   ))}
                 </div>
               )}
+            </motion.div>
+          )}
+
+          {/* PREOWNED TAB */}
+          {activeTab === 'preowned' && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+
+                {/* Add Preowned Product Form */}
+                <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6">
+                  <h3 className="text-lg font-semibold mb-6">➕ Add Preowned Product</h3>
+                  <form onSubmit={handleAddPreowned} className="space-y-4">
+                    <div><label className="text-sm text-[#7b6f66] mb-1 block">Name *</label><input type="text" placeholder="Product name" value={preownedForm.name} onChange={(e) => setPreownedForm({ ...preownedForm, name: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none transition" required/></div>
+                    <div><label className="text-sm text-[#7b6f66] mb-1 block">Description *</label><textarea placeholder="Describe the item and its condition..." value={preownedForm.description} rows={3} onChange={(e) => setPreownedForm({ ...preownedForm, description: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none transition resize-none" required/></div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div><label className="text-sm text-[#7b6f66] mb-1 block">Selling Price (₹) *</label><input type="number" placeholder="999" value={preownedForm.price} onChange={(e) => setPreownedForm({ ...preownedForm, price: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none transition" required/></div>
+                      <div><label className="text-sm text-[#7b6f66] mb-1 block">Original MRP (₹)</label><input type="number" placeholder="1999" value={preownedForm.originalPrice} onChange={(e) => setPreownedForm({ ...preownedForm, originalPrice: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none transition"/></div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div><label className="text-sm text-[#7b6f66] mb-1 block">Category *</label><input type="text" placeholder="e.g. Electronics, Clothing..." value={preownedForm.category} onChange={(e) => setPreownedForm({ ...preownedForm, category: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none transition" required/></div>
+                      <div><label className="text-sm text-[#7b6f66] mb-1 block">Stock</label><input type="number" placeholder="1" value={preownedForm.stock} onChange={(e) => setPreownedForm({ ...preownedForm, stock: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none transition"/></div>
+                    </div>
+                    <div>
+                      <label className="text-sm text-[#7b6f66] mb-1 block">Condition *</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[{ id: 'excellent', label: '✨ Excellent', desc: 'Like new' }, { id: 'good', label: '👍 Good', desc: 'Minor wear' }, { id: 'fair', label: '⚠️ Fair', desc: 'Visible wear' }].map(c => (
+                          <button key={c.id} type="button" onClick={() => setPreownedForm({ ...preownedForm, condition: c.id })} className={`rounded-2xl border p-3 text-center transition ${preownedForm.condition === c.id ? 'border-[#171313] bg-[#171313] text-white' : 'border-[#241a14]/15 bg-[#f6f1ea] hover:border-[#241a14]/30'}`}>
+                            <p className="text-xs font-semibold">{c.label}</p>
+                            <p className={`text-xs mt-0.5 ${preownedForm.condition === c.id ? 'text-white/60' : 'text-[#9b8f86]'}`}>{c.desc}</p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm text-[#7b6f66] mb-2 block">Image URLs</label>
+                      {preownedForm.images.map((img, index) => (
+                        <div key={index} className="flex gap-2 mb-2">
+                          <input type="text" placeholder={`Image URL ${index + 1}`} value={img} onChange={(e) => { const u = [...preownedForm.images]; u[index] = e.target.value; setPreownedForm({ ...preownedForm, images: u }) }} className="flex-1 rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-2.5 text-sm focus:outline-none transition"/>
+                          {preownedForm.images.length > 1 && <button type="button" onClick={() => setPreownedForm({ ...preownedForm, images: preownedForm.images.filter((_, i) => i !== index) })} className="text-red-500 px-2">✕</button>}
+                        </div>
+                      ))}
+                      <button type="button" onClick={() => setPreownedForm({ ...preownedForm, images: [...preownedForm.images, ''] })} className="text-sm text-[#7b6f66] hover:text-[#171313] transition">+ Add image</button>
+                    </div>
+                    <div>
+                      <label className="text-sm text-[#7b6f66] mb-2 block">Same Day Delivery Pincodes</label>
+                      <div className="flex gap-2 mb-2">
+                        <input type="text" placeholder="6-digit pincode" value={preownedPincodeInput} onChange={(e) => setPreownedPincodeInput(e.target.value.replace(/\D/g, '').slice(0, 6))} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addPincode(preownedForm.sameDayPincodes, (p) => setPreownedForm({ ...preownedForm, sameDayPincodes: p }), preownedPincodeInput, setPreownedPincodeInput) } }} className="flex-1 rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-2.5 text-sm focus:outline-none transition"/>
+                        <button type="button" onClick={() => addPincode(preownedForm.sameDayPincodes, (p) => setPreownedForm({ ...preownedForm, sameDayPincodes: p }), preownedPincodeInput, setPreownedPincodeInput)} className="rounded-full bg-[#171313] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#3a2a21]">Add</button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {preownedForm.sameDayPincodes.map(pin => (
+                          <span key={pin} className="flex items-center gap-1 bg-green-50 border border-green-200 text-green-700 text-xs font-mono font-bold px-3 py-1 rounded-full">
+                            {pin}<button type="button" onClick={() => setPreownedForm({ ...preownedForm, sameDayPincodes: preownedForm.sameDayPincodes.filter(p => p !== pin) })} className="text-green-500 hover:text-red-500 ml-1">✕</button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between bg-[#f6f1ea] border border-[#241a14]/15 rounded-2xl px-4 py-3">
+                      <div><p className="text-sm font-medium">Featured</p><p className="text-xs text-[#9b8f86]">Show in featured slider</p></div>
+                      <button type="button" onClick={() => setPreownedForm({ ...preownedForm, featured: !preownedForm.featured })} className={`w-12 h-6 rounded-full transition-colors duration-200 relative ${preownedForm.featured ? 'bg-[#171313]' : 'bg-[#241a14]/20'}`}>
+                        <span className={`absolute top-1 w-4 h-4 rounded-full transition-all duration-200 ${preownedForm.featured ? 'left-7 bg-white' : 'left-1 bg-[#9b8f86]'}`}/>
+                      </button>
+                    </div>
+                    {preownedMessage && <p className={`text-sm text-center ${preownedMessage.includes('added') || preownedMessage.includes('Product') ? 'text-green-600' : 'text-red-500'}`}>{preownedMessage}</p>}
+                    <motion.button type="submit" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} disabled={submittingPreowned} className="w-full rounded-full bg-[#171313] py-3.5 text-sm font-semibold text-white transition hover:bg-[#3a2a21] disabled:opacity-50">
+                      {submittingPreowned ? 'Adding...' : '+ Add Preowned Product'}
+                    </motion.button>
+                  </form>
+                </div>
+
+                {/* Preowned Products List */}
+                <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Preowned Listings ({preownedProducts.length})</h3>
+                    <a href="/preowned" target="_blank" className="text-xs text-[#7b6f66] hover:text-[#171313] border border-[#241a14]/15 px-3 py-1.5 rounded-full transition">View Store ↗</a>
+                  </div>
+                  <div className="space-y-3 max-h-[700px] overflow-y-auto pr-1">
+                    {preownedProducts.map(product => (
+                      <div key={product.id} className={`flex items-center gap-3 rounded-2xl p-3 border ${product.stock === 0 ? 'bg-red-50 border-red-200' : 'bg-[#f6f1ea] border-[#241a14]/10'}`}>
+                        <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-[#eadfd4]">
+                          {product.images?.[0] ? <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover"/> : <div className="grid h-full place-items-center">♻️</div>}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm truncate">{product.name}</p>
+                          <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                            <p className="text-xs text-[#7b6f66]">₹{product.price}</p>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full border ${product.condition === 'excellent' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : product.condition === 'good' ? 'text-blue-700 bg-blue-50 border-blue-200' : 'text-amber-700 bg-amber-50 border-amber-200'}`}>
+                              {product.condition}
+                            </span>
+                            {product.stock === 0 ? <span className="text-xs text-red-600 font-semibold">🚫 Sold</span> : <span className="text-xs text-green-600">✓ {product.stock}</span>}
+                            {product.featured && <span className="text-xs text-amber-600">⭐</span>}
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1.5 flex-shrink-0">
+                          <button onClick={() => togglePreownedFeatured(product)} className={`text-xs px-2 py-1 rounded-full border transition ${product.featured ? 'border-amber-300 text-amber-600' : 'border-[#241a14]/15 text-[#6d625a]'}`}>{product.featured ? '★' : '☆'}</button>
+                          <button onClick={() => { setEditPreowned(product); setEditPreownedForm({ name: product.name, description: product.description, price: product.price, originalPrice: product.originalPrice, images: product.images?.length > 0 ? product.images : [''], category: product.category, condition: product.condition || 'good', stock: product.stock, featured: product.featured || false, sameDayPincodes: product.sameDayPincodes || [] }); setEditPreownedPincodeInput('') }} className="text-xs px-2 py-1 rounded-full border border-[#241a14]/15 text-[#6d625a] hover:bg-white transition">✏️</button>
+                          <button onClick={() => handleDeletePreowned(product.id)} className="text-xs px-2 py-1 rounded-full border border-red-200 text-red-500 hover:bg-red-50 transition">🗑️</button>
+                        </div>
+                      </div>
+                    ))}
+                    {preownedProducts.length === 0 && <p className="text-sm text-[#9b8f86] text-center py-8">No preowned products yet</p>}
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats row */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Total Listings', value: preownedProducts.length, color: 'text-[#171313]' },
+                  { label: 'Available', value: preownedProducts.filter(p => p.stock > 0).length, color: 'text-green-600' },
+                  { label: 'Sold Out', value: preownedProducts.filter(p => p.stock === 0).length, color: 'text-red-600' },
+                  { label: 'Featured', value: preownedProducts.filter(p => p.featured).length, color: 'text-amber-600' }
+                ].map((s, i) => (
+                  <div key={i} className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-5 text-center">
+                    <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+                    <p className="text-xs text-[#9b8f86] mt-1">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4">
+                <p className="text-sm text-emerald-700 font-semibold mb-1">♻️ Preowned Store</p>
+                <p className="text-xs text-emerald-600">Customers can browse preowned items at <span className="font-mono font-bold">/preowned</span>. Products added here appear only in the preowned section, not the main store.</p>
+              </div>
             </motion.div>
           )}
 

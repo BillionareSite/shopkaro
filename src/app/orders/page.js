@@ -14,16 +14,28 @@ const CANCEL_REASONS = [
   'Other'
 ]
 
+const RETURN_REASONS = [
+  'Item damaged or defective',
+  'Wrong item delivered',
+  'Item not as described',
+  'Changed my mind',
+  'Quality not as expected',
+  'Missing parts or accessories',
+  'Other'
+]
+
 export default function Orders() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState(null)
   const [filter, setFilter] = useState('All')
   const [viewBill, setViewBill] = useState(null)
-  const [cancelModal, setCancelModal] = useState(null)
-  const [cancelForm, setCancelForm] = useState({ reason: '', details: '' })
-  const [submittingCancel, setSubmittingCancel] = useState(false)
-  const [cancelMessage, setCancelMessage] = useState('')
+
+  // Shared modal state for both cancel and return
+  const [requestModal, setRequestModal] = useState(null) // { order, type: 'cancel' | 'return' }
+  const [requestForm, setRequestForm] = useState({ reason: '', details: '' })
+  const [submittingRequest, setSubmittingRequest] = useState(false)
+  const [requestMessage, setRequestMessage] = useState('')
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -41,27 +53,35 @@ export default function Orders() {
       .then(data => { setOrders(data.orders || []); setLoading(false) })
   }
 
-  const handleCancelRequest = async () => {
-    if (!cancelForm.reason) { setCancelMessage('Please select a reason!'); return }
-    setSubmittingCancel(true)
-    setCancelMessage('')
+  const handleSubmitRequest = async () => {
+    if (!requestForm.reason) { setRequestMessage('Please select a reason!'); return }
+    setSubmittingRequest(true)
+    setRequestMessage('')
+
+    const isReturn = requestModal.type === 'return'
+
     const res = await fetch('/api/cancellation', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        orderId: cancelModal.id,
-        reason: cancelForm.reason,
-        details: cancelForm.details
+        orderId: requestModal.order.id,
+        reason: requestForm.reason,
+        details: requestForm.details,
+        type: isReturn ? 'return' : 'cancellation'
       })
     })
     const data = await res.json()
-    setSubmittingCancel(false)
+    setSubmittingRequest(false)
     if (res.ok) {
-      setCancelMessage('Cancellation request submitted!')
+      setRequestMessage(isReturn ? 'Return request submitted!' : 'Cancellation request submitted!')
       fetchOrders(user.email)
-      setTimeout(() => { setCancelModal(null); setCancelForm({ reason: '', details: '' }); setCancelMessage('') }, 2000)
+      setTimeout(() => {
+        setRequestModal(null)
+        setRequestForm({ reason: '', details: '' })
+        setRequestMessage('')
+      }, 2000)
     } else {
-      setCancelMessage(data.message)
+      setRequestMessage(data.message)
     }
   }
 
@@ -69,12 +89,25 @@ export default function Orders() {
     if (status === 'delivered') return 'text-green-700 bg-green-50 border-green-200'
     if (status === 'confirmed') return 'text-blue-700 bg-blue-50 border-blue-200'
     if (status === 'cancelled') return 'text-red-700 bg-red-50 border-red-200'
+    if (status === 'rejected') return 'text-rose-700 bg-rose-50 border-rose-200'
     return 'text-amber-700 bg-amber-50 border-amber-200'
   }
 
   const paymentLabels = { cod: 'Cash on Delivery', upi: 'UPI Payment', bank: 'Bank Transfer', card: 'Razorpay' }
 
   const filtered = filter === 'All' ? orders : orders.filter(o => o.status === filter)
+
+  // Show Cancel button: not delivered, not cancelled, no existing request
+  const canCancel = (order) =>
+    order.status !== 'delivered' &&
+    order.status !== 'cancelled' &&
+    order.status !== 'rejected' &&
+    !order.cancellationRequest
+
+  // Show Return button: delivered, no existing request
+  const canReturn = (order) =>
+    order.status === 'delivered' &&
+    !order.cancellationRequest
 
   const printBill = (order) => {
     const items = order.items || []
@@ -107,15 +140,13 @@ export default function Orders() {
     win.print()
   }
 
-  const canRequestCancellation = (order) => {
-    return order.status !== 'delivered' && order.status !== 'cancelled' && !order.cancellationRequest
-  }
-
   if (!user) return (
     <main className="min-h-screen bg-[#f6f1ea] flex items-center justify-center">
       <div className="w-8 h-8 rounded-full border-2 border-[#171313] border-t-transparent animate-spin"/>
     </main>
   )
+
+  const isReturn = requestModal?.type === 'return'
 
   return (
     <main className="min-h-screen bg-[#f6f1ea] text-[#171313]">
@@ -179,13 +210,31 @@ export default function Orders() {
                   </div>
                 )}
 
-                {/* Cancellation Request Status */}
+                {/* Cancellation / Return Request Status */}
                 {order.cancellationRequest && (
-                  <div className={`px-5 py-3 border-b ${order.cancellationRequest.status === 'approved' ? 'bg-red-50 border-red-200' : order.cancellationRequest.status === 'rejected' ? 'bg-orange-50 border-orange-200' : 'bg-yellow-50 border-yellow-200'}`}>
-                    <p className={`text-xs font-semibold ${order.cancellationRequest.status === 'approved' ? 'text-red-700' : order.cancellationRequest.status === 'rejected' ? 'text-orange-700' : 'text-yellow-700'}`}>
-                      {order.cancellationRequest.status === 'approved' && '✅ Cancellation approved — order has been cancelled'}
-                      {order.cancellationRequest.status === 'rejected' && '❌ Cancellation request rejected by admin'}
-                      {order.cancellationRequest.status === 'pending' && '⏳ Cancellation request pending review'}
+                  <div className={`px-5 py-3 border-b ${
+                    order.cancellationRequest.status === 'approved'
+                      ? 'bg-green-50 border-green-200'
+                      : order.cancellationRequest.status === 'rejected'
+                      ? 'bg-orange-50 border-orange-200'
+                      : 'bg-yellow-50 border-yellow-200'
+                  }`}>
+                    <p className={`text-xs font-semibold ${
+                      order.cancellationRequest.status === 'approved'
+                        ? 'text-green-700'
+                        : order.cancellationRequest.status === 'rejected'
+                        ? 'text-orange-700'
+                        : 'text-yellow-700'
+                    }`}>
+                      {/* Cancellation messages */}
+                      {order.cancellationRequest.type !== 'return' && order.cancellationRequest.status === 'approved' && '✅ Cancellation approved — order has been cancelled'}
+                      {order.cancellationRequest.type !== 'return' && order.cancellationRequest.status === 'rejected' && '❌ Cancellation request was rejected by admin'}
+                      {order.cancellationRequest.type !== 'return' && order.cancellationRequest.status === 'pending' && '⏳ Cancellation request is pending review'}
+
+                      {/* Return messages */}
+                      {order.cancellationRequest.type === 'return' && order.cancellationRequest.status === 'approved' && '✅ Return approved — our team will contact you shortly'}
+                      {order.cancellationRequest.type === 'return' && order.cancellationRequest.status === 'rejected' && '❌ Return request was rejected by admin'}
+                      {order.cancellationRequest.type === 'return' && order.cancellationRequest.status === 'pending' && '⏳ Return request is pending review'}
                     </p>
                   </div>
                 )}
@@ -205,8 +254,25 @@ export default function Orders() {
                       </span>
                       <button onClick={() => setViewBill(order)} className="text-xs px-3 py-1.5 rounded-full border border-[#241a14]/15 text-[#6d625a] hover:bg-[#f6f1ea] transition">🧾 Bill</button>
                       <button onClick={() => printBill(order)} className="text-xs px-3 py-1.5 rounded-full border border-[#241a14]/15 text-[#6d625a] hover:bg-[#f6f1ea] transition">🖨️</button>
-                      {canRequestCancellation(order) && (
-                        <button onClick={() => { setCancelModal(order); setCancelForm({ reason: '', details: '' }); setCancelMessage('') }} className="text-xs px-3 py-1.5 rounded-full border border-red-200 text-red-500 hover:bg-red-50 transition">Cancel Order</button>
+
+                      {/* Cancel button — only for non-delivered orders */}
+                      {canCancel(order) && (
+                        <button
+                          onClick={() => { setRequestModal({ order, type: 'cancel' }); setRequestForm({ reason: '', details: '' }); setRequestMessage('') }}
+                          className="text-xs px-3 py-1.5 rounded-full border border-red-200 text-red-500 hover:bg-red-50 transition"
+                        >
+                          Cancel Order
+                        </button>
+                      )}
+
+                      {/* Return button — only for delivered orders */}
+                      {canReturn(order) && (
+                        <button
+                          onClick={() => { setRequestModal({ order, type: 'return' }); setRequestForm({ reason: '', details: '' }); setRequestMessage('') }}
+                          className="text-xs px-3 py-1.5 rounded-full border border-blue-200 text-blue-600 hover:bg-blue-50 transition"
+                        >
+                          🔄 Return Order
+                        </button>
                       )}
                     </div>
                   </div>
@@ -244,7 +310,7 @@ export default function Orders() {
                     </div>
                   </div>
 
-                  {order.status !== 'cancelled' && (
+                  {order.status !== 'cancelled' && order.status !== 'rejected' && (
                     <div className="flex items-center gap-1">
                       {['pending', 'confirmed', 'delivered'].map((s, index) => (
                         <div key={s} className="flex items-center gap-1 flex-1">
@@ -256,6 +322,7 @@ export default function Orders() {
                     </div>
                   )}
                   {order.status === 'cancelled' && <p className="text-xs text-red-500 font-semibold">❌ This order was cancelled</p>}
+                  {order.status === 'rejected' && <p className="text-xs text-rose-500 font-semibold">❌ This order was rejected</p>}
                 </div>
               </motion.div>
             ))}
@@ -263,47 +330,79 @@ export default function Orders() {
         )}
       </div>
 
-      {/* Cancellation Modal */}
+      {/* Cancel / Return Request Modal */}
       <AnimatePresence>
-        {cancelModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setCancelModal(null) }}>
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-[1.4rem] w-full max-w-md shadow-2xl overflow-hidden">
-              <div className="bg-red-50 border-b border-red-200 p-5">
-                <h3 className="text-lg font-semibold text-red-700">Request Cancellation</h3>
-                <p className="text-sm text-red-500 mt-1">Order: <span className="font-mono font-bold">{cancelModal.orderId}</span></p>
+        {requestModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setRequestModal(null) }}>
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-[1.4rem] w-full max-w-md shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+
+              {/* Modal Header */}
+              <div className={`p-5 border-b ${isReturn ? 'bg-blue-50 border-blue-200' : 'bg-red-50 border-red-200'}`}>
+                <h3 className={`text-lg font-semibold ${isReturn ? 'text-blue-700' : 'text-red-700'}`}>
+                  {isReturn ? '🔄 Request Return' : '❌ Request Cancellation'}
+                </h3>
+                <p className={`text-sm mt-1 ${isReturn ? 'text-blue-500' : 'text-red-500'}`}>
+                  Order: <span className="font-mono font-bold">{requestModal.order.orderId}</span>
+                </p>
+                {isReturn && (
+                  <p className="text-xs text-blue-600 mt-2 bg-blue-100 rounded-xl px-3 py-2">
+                    ℹ️ Our team will review your return request and contact you within 24-48 hours.
+                  </p>
+                )}
               </div>
+
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="text-sm text-[#7b6f66] mb-2 block font-medium">Why do you want to cancel? *</label>
+                  <label className="text-sm text-[#7b6f66] mb-2 block font-medium">
+                    {isReturn ? 'Why do you want to return?' : 'Why do you want to cancel?'} *
+                  </label>
                   <div className="space-y-2">
-                    {CANCEL_REASONS.map(reason => (
-                      <button key={reason} onClick={() => setCancelForm(prev => ({ ...prev, reason }))} className={`w-full text-left px-4 py-3 rounded-2xl border text-sm transition ${cancelForm.reason === reason ? 'border-[#171313] bg-[#171313] text-white' : 'border-[#241a14]/15 bg-[#f6f1ea] text-[#171313] hover:border-[#241a14]/30'}`}>
+                    {(isReturn ? RETURN_REASONS : CANCEL_REASONS).map(reason => (
+                      <button
+                        key={reason}
+                        onClick={() => setRequestForm(prev => ({ ...prev, reason }))}
+                        className={`w-full text-left px-4 py-3 rounded-2xl border text-sm transition ${requestForm.reason === reason ? 'border-[#171313] bg-[#171313] text-white' : 'border-[#241a14]/15 bg-[#f6f1ea] text-[#171313] hover:border-[#241a14]/30'}`}
+                      >
                         {reason}
                       </button>
                     ))}
                   </div>
                 </div>
+
                 <div>
-                  <label className="text-sm text-[#7b6f66] mb-1 block">Additional details <span className="text-[#9b8f86]">(optional)</span></label>
+                  <label className="text-sm text-[#7b6f66] mb-1 block">
+                    Additional details <span className="text-[#9b8f86]">(optional)</span>
+                  </label>
                   <textarea
-                    placeholder="Tell us more about why you want to cancel..."
-                    value={cancelForm.details}
-                    onChange={(e) => setCancelForm(prev => ({ ...prev, details: e.target.value }))}
+                    placeholder={isReturn ? 'Describe the issue with your order...' : 'Tell us more about why you want to cancel...'}
+                    value={requestForm.details}
+                    onChange={(e) => setRequestForm(prev => ({ ...prev, details: e.target.value }))}
                     rows={3}
-                    className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition resize-none"
+                    className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm text-[#171313] placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition resize-none"
                   />
                 </div>
 
-                {cancelMessage && (
-                  <p className={`text-sm text-center font-medium ${cancelMessage.includes('submitted') ? 'text-green-600' : 'text-red-500'}`}>
-                    {cancelMessage}
+                {requestMessage && (
+                  <p className={`text-sm text-center font-medium ${requestMessage.includes('submitted') ? 'text-green-600' : 'text-red-500'}`}>
+                    {requestMessage}
                   </p>
                 )}
 
                 <div className="flex gap-3 pt-2">
-                  <button onClick={() => setCancelModal(null)} className="flex-1 rounded-full border border-[#241a14]/15 py-3 text-sm font-semibold text-[#6d625a] transition hover:bg-[#f6f1ea]">Keep Order</button>
-                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleCancelRequest} disabled={submittingCancel || !cancelForm.reason} className="flex-1 rounded-full bg-red-600 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-50">
-                    {submittingCancel ? 'Submitting...' : 'Submit Request'}
+                  <button
+                    onClick={() => setRequestModal(null)}
+                    className="flex-1 rounded-full border border-[#241a14]/15 py-3 text-sm font-semibold text-[#6d625a] transition hover:bg-[#f6f1ea]"
+                  >
+                    {isReturn ? 'Keep Order' : 'Keep Order'}
+                  </button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleSubmitRequest}
+                    disabled={submittingRequest || !requestForm.reason}
+                    className={`flex-1 rounded-full py-3 text-sm font-semibold text-white transition disabled:opacity-50 ${isReturn ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-600 hover:bg-red-700'}`}
+                  >
+                    {submittingRequest ? 'Submitting...' : isReturn ? 'Submit Return' : 'Submit Request'}
                   </motion.button>
                 </div>
               </div>
