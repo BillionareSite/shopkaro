@@ -1403,6 +1403,148 @@ export default function AdminDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+      {/* PASTE THIS INSIDE YOUR ADMIN PAGE.JS — right before the last closing </div> tag, alongside your other modals (Bill Modal, Screenshot Modal, Edit Product Modal) */}
+
+{/* Edit Preowned Product Modal */}
+<AnimatePresence>
+  {editPreowned && editPreownedForm && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) { setEditPreowned(null); setEditPreownedForm(null) } }}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-white rounded-[1.4rem] p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold">♻️ Edit Preowned Product</h3>
+          <button onClick={() => { setEditPreowned(null); setEditPreownedForm(null) }} className="text-[#9b8f86] hover:text-[#171313] text-xl">✕</button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm text-[#7b6f66] mb-1 block">Name</label>
+            <input type="text" value={editPreownedForm.name} onChange={(e) => setEditPreownedForm({ ...editPreownedForm, name: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm text-[#171313] focus:outline-none transition"/>
+          </div>
+
+          <div>
+            <label className="text-sm text-[#7b6f66] mb-1 block">Description</label>
+            <textarea value={editPreownedForm.description} onChange={(e) => setEditPreownedForm({ ...editPreownedForm, description: e.target.value })} rows={3} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm text-[#171313] focus:outline-none transition resize-none"/>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm text-[#7b6f66] mb-1 block">Selling Price (₹)</label>
+              <input type="number" value={editPreownedForm.price} onChange={(e) => setEditPreownedForm({ ...editPreownedForm, price: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm text-[#171313] focus:outline-none transition"/>
+            </div>
+            <div>
+              <label className="text-sm text-[#7b6f66] mb-1 block">Original MRP (₹)</label>
+              <input type="number" value={editPreownedForm.originalPrice} onChange={(e) => setEditPreownedForm({ ...editPreownedForm, originalPrice: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm text-[#171313] focus:outline-none transition"/>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm text-[#7b6f66] mb-1 block">Category</label>
+              <input type="text" value={editPreownedForm.category} onChange={(e) => setEditPreownedForm({ ...editPreownedForm, category: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm text-[#171313] focus:outline-none transition"/>
+            </div>
+            <div>
+              <label className="text-sm text-[#7b6f66] mb-1 block">Stock</label>
+              <input type="number" value={editPreownedForm.stock} onChange={(e) => setEditPreownedForm({ ...editPreownedForm, stock: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm text-[#171313] focus:outline-none transition"/>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm text-[#7b6f66] mb-2 block">Condition</label>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { id: 'excellent', label: '✨ Excellent', desc: 'Like new' },
+                { id: 'good', label: '👍 Good', desc: 'Minor wear' },
+                { id: 'fair', label: '⚠️ Fair', desc: 'Visible wear' }
+              ].map(c => (
+                <button key={c.id} type="button" onClick={() => setEditPreownedForm({ ...editPreownedForm, condition: c.id })}
+                  className={`rounded-2xl border p-3 text-center transition ${editPreownedForm.condition === c.id ? 'border-[#171313] bg-[#171313] text-white' : 'border-[#241a14]/15 bg-[#f6f1ea] hover:border-[#241a14]/30'}`}>
+                  <p className="text-xs font-semibold">{c.label}</p>
+                  <p className={`text-xs mt-0.5 ${editPreownedForm.condition === c.id ? 'text-white/60' : 'text-[#9b8f86]'}`}>{c.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm text-[#7b6f66] mb-2 block">Image URLs</label>
+            {editPreownedForm.images.map((img, index) => (
+              <div key={index} className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  placeholder={`Image URL ${index + 1}`}
+                  value={img}
+                  onChange={(e) => { const u = [...editPreownedForm.images]; u[index] = e.target.value; setEditPreownedForm({ ...editPreownedForm, images: u }) }}
+                  className="flex-1 rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-2.5 text-sm text-[#171313] focus:outline-none transition"
+                />
+                {editPreownedForm.images.length > 1 && (
+                  <button type="button" onClick={() => setEditPreownedForm({ ...editPreownedForm, images: editPreownedForm.images.filter((_, i) => i !== index) })} className="text-red-500 px-2">✕</button>
+                )}
+              </div>
+            ))}
+            <button type="button" onClick={() => setEditPreownedForm({ ...editPreownedForm, images: [...editPreownedForm.images, ''] })} className="text-sm text-[#7b6f66] hover:text-[#171313] transition">+ Add image</button>
+          </div>
+
+          <div>
+            <label className="text-sm text-[#7b6f66] mb-2 block">Same Day Pincodes</label>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                placeholder="6-digit pincode"
+                value={editPreownedPincodeInput}
+                onChange={(e) => setEditPreownedPincodeInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addPincode(editPreownedForm.sameDayPincodes, (p) => setEditPreownedForm({ ...editPreownedForm, sameDayPincodes: p }), editPreownedPincodeInput, setEditPreownedPincodeInput) } }}
+                className="flex-1 rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-2.5 text-sm text-[#171313] focus:outline-none transition"
+              />
+              <button type="button" onClick={() => addPincode(editPreownedForm.sameDayPincodes, (p) => setEditPreownedForm({ ...editPreownedForm, sameDayPincodes: p }), editPreownedPincodeInput, setEditPreownedPincodeInput)} className="rounded-full bg-[#171313] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#3a2a21]">Add</button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {editPreownedForm.sameDayPincodes.map(pin => (
+                <span key={pin} className="flex items-center gap-1 bg-green-50 border border-green-200 text-green-700 text-xs font-mono font-bold px-3 py-1 rounded-full">
+                  {pin}
+                  <button type="button" onClick={() => setEditPreownedForm({ ...editPreownedForm, sameDayPincodes: editPreownedForm.sameDayPincodes.filter(p => p !== pin) })} className="text-green-500 hover:text-red-500 ml-1">✕</button>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between bg-[#f6f1ea] border border-[#241a14]/15 rounded-2xl px-4 py-3">
+            <div>
+              <p className="text-sm font-medium">Featured</p>
+              <p className="text-xs text-[#9b8f86]">Show in featured slider</p>
+            </div>
+            <button type="button" onClick={() => setEditPreownedForm({ ...editPreownedForm, featured: !editPreownedForm.featured })} className={`w-12 h-6 rounded-full transition-colors duration-200 relative ${editPreownedForm.featured ? 'bg-[#171313]' : 'bg-[#241a14]/20'}`}>
+              <span className={`absolute top-1 w-4 h-4 rounded-full transition-all duration-200 ${editPreownedForm.featured ? 'left-7 bg-white' : 'left-1 bg-[#9b8f86]'}`}/>
+            </button>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button onClick={() => { setEditPreowned(null); setEditPreownedForm(null) }} className="flex-1 rounded-full border border-[#241a14]/15 py-3 text-sm font-semibold text-[#6d625a] transition hover:bg-[#f6f1ea]">Cancel</button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleUpdatePreowned}
+              disabled={updating === 'preowned'}
+              className="flex-1 rounded-full bg-[#171313] py-3 text-sm font-semibold text-white transition hover:bg-[#3a2a21] disabled:opacity-50"
+            >
+              {updating === 'preowned' ? 'Saving...' : 'Save Changes'}
+            </motion.button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
     </div>
   )
 }
