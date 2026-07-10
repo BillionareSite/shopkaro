@@ -18,22 +18,34 @@ export async function POST(req) {
       return NextResponse.json({ message: 'All fields are required' }, { status: 400 })
     }
 
-    // ── SECURITY: Re-fetch real prices and stock from DB. ──
-    // ── Never trust "total" or "price" sent from the frontend. ──
-    const productIds = items.map(i => i.id)
-    const dbProducts = await prisma.product.findMany({
-      where: { id: { in: productIds } }
-    })
+    // Separate regular and preowned items
+    const regularItems = items.filter(i => !i.preowned)
+    const preownedItems = items.filter(i => i.preowned)
 
-    if (dbProducts.length === 0) {
+    const regularIds = regularItems.map(i => i.id)
+    const preownedIds = preownedItems.map(i => i.id)
+
+    // Fetch real prices from BOTH tables
+    const [dbRegular, dbPreowned] = await Promise.all([
+      regularIds.length > 0 ? prisma.product.findMany({ where: { id: { in: regularIds } } }) : [],
+      preownedIds.length > 0 ? prisma.preownedProduct.findMany({ where: { id: { in: preownedIds } } }) : []
+    ])
+
+    const allDbProducts = [
+      ...dbRegular.map(p => ({ ...p, preowned: false })),
+      ...dbPreowned.map(p => ({ ...p, preowned: true }))
+    ]
+
+    if (allDbProducts.length === 0) {
       return NextResponse.json({ message: 'No valid products found' }, { status: 400 })
     }
 
+    // Calculate subtotal and build verified items list
     let subtotal = 0
     const verifiedItems = []
 
     for (const item of items) {
-      const dbProduct = dbProducts.find(p => p.id === item.id)
+      const dbProduct = allDbProducts.find(p => p.id === item.id)
       if (!dbProduct) {
         return NextResponse.json({ message: `Product not found: ${item.name || item.id}` }, { status: 400 })
       }
@@ -41,19 +53,18 @@ export async function POST(req) {
         return NextResponse.json({ message: `Not enough stock for ${dbProduct.name}` }, { status: 400 })
       }
       subtotal += dbProduct.price * item.quantity
-
-      // Rebuild the item using DB data (name, price, images) — not frontend data
       verifiedItems.push({
         id: dbProduct.id,
         name: dbProduct.name,
         price: dbProduct.price,
         quantity: item.quantity,
         images: dbProduct.images,
-        sameDayPincodes: dbProduct.sameDayPincodes
+        sameDayPincodes: dbProduct.sameDayPincodes || [],
+        preowned: dbProduct.preowned || false
       })
     }
 
-    // ── Validate coupon server-side, recalculate discount ──
+    // Validate coupon server-side
     let discount = 0
     let validCouponCode = ''
     let validCouponId = ''
@@ -80,13 +91,9 @@ export async function POST(req) {
       }
     }
 
-    // ── THE REAL, SERVER-CALCULATED TOTAL — this is what gets saved ──
     const total = Math.max(0, subtotal - discount)
 
-    // ── If this is a Razorpay payment, verify the payment amount matches ──
     if (paymentMethod === 'card' && razorpayPaymentId) {
-      // We trust paymentVerified flag only if it came through after signature verification
-      // in /api/payment/verify — the checkout page only calls this after that succeeds.
       if (!paymentVerified) {
         return NextResponse.json({ message: 'Payment not verified' }, { status: 400 })
       }
@@ -109,10 +116,10 @@ export async function POST(req) {
         address,
         pincode,
         items: verifiedItems,
-        total,                                    // ← server-calculated, not frontend
+        total,
         email: email || '',
-        discount: discount || 0,                   // ← server-calculated
-        couponCode: validCouponCode,                // ← server-validated
+        discount: discount || 0,
+        couponCode: validCouponCode,
         paymentMethod: paymentMethod || 'cod',
         paymentSenderName: paymentSenderName || '',
         paymentUTR: razorpayPaymentId || paymentUTR || '',
@@ -137,12 +144,24 @@ export async function POST(req) {
       }
     }
 
-    // Reduce stock using verified quantities
+    // Reduce stock in the correct table
     for (const item of verifiedItems) {
-      const product = await prisma.product.findUnique({ where: { id: item.id } })
-      if (product) {
-        const newStock = Math.max(0, product.stock - item.quantity)
-        await prisma.product.update({ where: { id: item.id }, data: { stock: newStock } })
+      if (item.preowned) {
+        const product = await prisma.preownedProduct.findUnique({ where: { id: item.id } })
+        if (product) {
+          await prisma.preownedProduct.update({
+            where: { id: item.id },
+            data: { stock: Math.max(0, product.stock - item.quantity) }
+          })
+        }
+      } else {
+        const product = await prisma.product.findUnique({ where: { id: item.id } })
+        if (product) {
+          await prisma.product.update({
+            where: { id: item.id },
+            data: { stock: Math.max(0, product.stock - item.quantity) }
+          })
+        }
       }
     }
 
@@ -154,19 +173,22 @@ export async function POST(req) {
     }
 
     const itemsList = verifiedItems.map(item =>
-      `  • ${item.name} x${item.quantity} — ₹${item.price * item.quantity}`
+      `  • ${item.preowned ? '[Preowned] ' : ''}${item.name} x${item.quantity} — ₹${item.price * item.quantity}`
     ).join('\n')
+
+    const hasPreowned = verifiedItems.some(i => i.preowned)
 
     const telegramMessage = `
 🛍️ <b>New Order Received!</b>
 ${isSameDay ? '\n⚡ <b>SAME DAY DELIVERY ORDER!</b>' : ''}
+${hasPreowned ? '\n♻️ <b>Contains Preowned Items</b>' : ''}
 
 🔖 <b>Order ID:</b> ${orderId}
 👤 <b>Customer:</b> ${name}
 📧 <b>Email:</b> ${email || 'Guest'}
 📱 <b>Phone:</b> ${phone}
 ${whatsapp ? `💬 <b>WhatsApp:</b> ${whatsapp}\n` : ''}📍 <b>Address:</b> ${address}, ${pincode}
-${isSameDay ? '⚡ <b>Delivery Type:</b> Same Day Delivery\n' : ''}💳 <b>Payment:</b> ${paymentLabels[paymentMethod] || paymentMethod}
+💳 <b>Payment:</b> ${paymentLabels[paymentMethod] || paymentMethod}
 ${needsVerification ? `🔍 <b>Payment Status:</b> Verification Pending\n👤 <b>Sender:</b> ${paymentSenderName}\n🔢 <b>UTR:</b> ${paymentUTR}\n` : ''}${paymentMethod === 'card' ? `✅ <b>Payment Status:</b> Verified via Razorpay\n🔢 <b>Payment ID:</b> ${razorpayPaymentId}\n` : ''}
 🛒 <b>Items:</b>
 ${itemsList}

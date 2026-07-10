@@ -117,7 +117,7 @@ export default function Checkout() {
 
   // Build the minimal, tamper-proof payload: only IDs and quantities.
   // No prices, no totals — server fetches those itself from the database.
-  const buildItemsPayload = () => cart.map(item => ({ id: item.id, quantity: item.quantity, name: item.name }))
+  const buildItemsPayload = () => cart.map(item => ({ id: item.id, quantity: item.quantity, name: item.name, preowned: item.preowned || false }))
 
   // ── Save order to DB. Server recalculates total — frontend total is ignored. ──
   const saveOrderToDB = async (method, paymentVerified = false, razorpayOrderId = '', razorpayPaymentId = '') => {

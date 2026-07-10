@@ -15,22 +15,34 @@ export async function POST(req) {
       return NextResponse.json({ message: 'Cart is empty' }, { status: 400 })
     }
 
-    // ── Step 1: Fetch REAL prices from DB. Never trust frontend. ──
-    const productIds = items.map(i => i.id)
-    const dbProducts = await prisma.product.findMany({
-      where: { id: { in: productIds } }
-    })
+    // Separate regular and preowned items
+    const regularItems = items.filter(i => !i.preowned)
+    const preownedItems = items.filter(i => i.preowned)
 
-    if (dbProducts.length === 0) {
+    // Fetch real prices from DB for both tables
+    const regularIds = regularItems.map(i => i.id)
+    const preownedIds = preownedItems.map(i => i.id)
+
+    const [dbRegular, dbPreowned] = await Promise.all([
+      regularIds.length > 0 ? prisma.product.findMany({ where: { id: { in: regularIds } } }) : [],
+      preownedIds.length > 0 ? prisma.preownedProduct.findMany({ where: { id: { in: preownedIds } } }) : []
+    ])
+
+    const allDbProducts = [
+      ...dbRegular.map(p => ({ ...p, preowned: false })),
+      ...dbPreowned.map(p => ({ ...p, preowned: true }))
+    ]
+
+    if (allDbProducts.length === 0) {
       return NextResponse.json({ message: 'No valid products found' }, { status: 400 })
     }
 
-    // ── Step 2: Calculate subtotal using DB prices ──
+    // Calculate subtotal using DB prices
     let subtotal = 0
     for (const item of items) {
-      const dbProduct = dbProducts.find(p => p.id === item.id)
+      const dbProduct = allDbProducts.find(p => p.id === item.id)
       if (!dbProduct) {
-        return NextResponse.json({ message: `Product not found: ${item.id}` }, { status: 400 })
+        return NextResponse.json({ message: `Product not found: ${item.name || item.id}` }, { status: 400 })
       }
       if (dbProduct.stock < item.quantity) {
         return NextResponse.json({ message: `Not enough stock for ${dbProduct.name}` }, { status: 400 })
@@ -38,7 +50,7 @@ export async function POST(req) {
       subtotal += dbProduct.price * item.quantity
     }
 
-    // ── Step 3: Validate coupon server-side ──
+    // Validate coupon server-side
     let discount = 0
     let validCouponCode = ''
     let validCouponId = ''
@@ -47,12 +59,10 @@ export async function POST(req) {
       const coupon = await prisma.coupon.findUnique({
         where: { code: couponCode.toUpperCase().trim() }
       })
-
       if (coupon && coupon.isActive) {
         const now = new Date()
         const notExpired = !coupon.expiryDate || now < new Date(coupon.expiryDate)
         const meetsMinCart = subtotal >= (coupon.minCartValue || 0)
-
         if (notExpired && meetsMinCart) {
           if (coupon.type === 'percentage') {
             discount = (subtotal * coupon.value) / 100
@@ -73,14 +83,13 @@ export async function POST(req) {
       return NextResponse.json({ message: 'Invalid total amount' }, { status: 400 })
     }
 
-    // ── Step 4: Create Razorpay order with SERVER-calculated amount ──
+    // Create Razorpay order with SERVER-calculated amount
     const order = await razorpay.orders.create({
       amount: Math.round(total * 100), // paise
       currency: 'INR',
       receipt: `receipt_${Date.now()}`,
     })
 
-    // ── Step 5: Return order details + server-calculated values ──
     return NextResponse.json({
       orderId: order.id,
       amount: order.amount,
