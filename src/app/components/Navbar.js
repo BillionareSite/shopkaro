@@ -40,7 +40,7 @@ export default function Navbar() {
   }
 
   return (
-    <header className={`sticky top-0 z-50 border-b border-[#241a14]/10 transition-all duration-300 ${scrolled ? 'bg-[#f6f1ea]/95 backdrop-blur-xl shadow-sm' : 'bg-[#f6f1ea]/85 backdrop-blur-xl'}`}>
+    <header className={`sticky top-0 z-50 border-b border-[var(--border)]/10 transition-all duration-300 ${scrolled ? 'bg-[var(--bg)]/95 backdrop-blur-xl shadow-sm' : 'bg-[var(--bg)]/85 backdrop-blur-xl'}`}>
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 gap-4">
 
         {/* Logo */}
@@ -52,32 +52,32 @@ export default function Navbar() {
       className="h-11 w-11 rounded-full object-cover"
     />
   ) : (
-    <div className="grid h-11 w-11 place-items-center rounded-full bg-[#171313] text-sm font-semibold text-[#f6f1ea]">
+    <div className="grid h-11 w-11 place-items-center rounded-full bg-[var(--btn-dark)] text-sm font-semibold text-[#f6f1ea]">
       {config.shortCode}
     </div>
   )}
   <div className="hidden sm:block">
     <p className="text-xl font-semibold tracking-tight">{config.brandName}</p>
-    <p className="text-xs text-[#7b6f66]">{config.tagline}</p>
+    <p className="text-xs text-[var(--text-muted)]">{config.tagline}</p>
   </div>
 </a>
 
         {/* Desktop Nav */}
-        <nav className="hidden items-center gap-6 text-sm font-medium text-[#6d625a] md:flex">
-          <a href="/" className="transition hover:text-[#171313]">Home</a>
-          <a href="/products" className="transition hover:text-[#171313]">Products</a>
-          <a href="/about" className="transition hover:text-[#171313]">About</a>
-          <a href="/contact" className="transition hover:text-[#171313]">Contact</a>
-          <a href="/help" className="transition hover:text-[#171313]">Help</a>
+        <nav className="hidden items-center gap-6 text-sm font-medium text-[var(--text-muted)] md:flex">
+          <a href="/" className="transition hover:text-[var(--text-primary)]">Home</a>
+          <a href="/products" className="transition hover:text-[var(--text-primary)]">Products</a>
+          <a href="/about" className="transition hover:text-[var(--text-primary)]">About</a>
+          <a href="/contact" className="transition hover:text-[var(--text-primary)]">Contact</a>
+          <a href="/help" className="transition hover:text-[var(--text-primary)]">Help</a>
           {isLoggedIn ? (
             <>
-              <a href="/orders" className="transition hover:text-[#171313]">Orders</a>
-              <a href="/profile" className="transition hover:text-[#171313]">Profile</a>
+              <a href="/orders" className="transition hover:text-[var(--text-primary)]">Orders</a>
+              <a href="/profile" className="transition hover:text-[var(--text-primary)]">Profile</a>
             </>
           ) : (
             <>
-              <a href="/auth/login" className="transition hover:text-[#171313]">Login</a>
-              <a href="/auth/signup" className="transition hover:text-[#171313]">Signup</a>
+              <a href="/auth/login" className="transition hover:text-[var(--text-primary)]">Login</a>
+              <a href="/auth/signup" className="transition hover:text-[var(--text-primary)]">Signup</a>
             </>
           )}
         </nav>
@@ -103,16 +103,16 @@ export default function Navbar() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search products..."
-                    className="w-full rounded-full border border-[#241a14]/15 bg-white/70 px-4 py-2 text-sm text-[#171313] placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30"
+                    className="w-full rounded-full border border-[var(--border)]/15 bg-white/70 px-4 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-placeholder)] focus:outline-none focus:border-[var(--border)]/30"
                   />
-                  <button type="button" onClick={() => { setSearchOpen(false); setSearch('') }} className="ml-2 text-[#7b6f66] hover:text-[#171313] transition">✕</button>
+                  <button type="button" onClick={() => { setSearchOpen(false); setSearch('') }} className="ml-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition">✕</button>
                 </motion.form>
               ) : (
                 <motion.button
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   onClick={() => setSearchOpen(true)}
-                  className="flex items-center gap-2 rounded-full border border-[#241a14]/15 bg-white/55 px-4 py-2 text-sm text-[#6d625a] transition hover:bg-white/80"
+                  className="flex items-center gap-2 rounded-full border border-[var(--border)]/15 bg-[var(--bg-card)]/55 px-4 py-2 text-sm text-[var(--text-muted)] transition hover:bg-white/80"
                 >
                   <span>🔍</span>
                   <span className="hidden lg:block">Search</span>
@@ -122,11 +122,11 @@ export default function Navbar() {
           </div>
 
           {/* Cart */}
-          <a href="/cart" className="relative flex items-center gap-2 rounded-full border border-[#241a14]/15 bg-white/55 px-4 py-2 text-sm font-medium text-[#171313] transition hover:bg-white/80">
+          <a href="/cart" className="relative flex items-center gap-2 rounded-full border border-[var(--border)]/15 bg-[var(--bg-card)]/55 px-4 py-2 text-sm font-medium text-[var(--text-primary)] transition hover:bg-white/80">
             <span>🛒</span>
             <span className="hidden sm:block">Cart</span>
             {cartCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#171313] text-xs font-bold text-white">
+              <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--btn-dark)] text-xs font-bold text-white">
                 {cartCount > 9 ? '9+' : cartCount}
               </span>
             )}
@@ -134,7 +134,7 @@ export default function Navbar() {
 
           {/* Mobile hamburger */}
           <button
-            className="md:hidden flex items-center justify-center w-10 h-10 rounded-full border border-[#241a14]/15 bg-white/55 text-[#171313]"
+            className="md:hidden flex items-center justify-center w-10 h-10 rounded-full border border-[var(--border)]/15 bg-[var(--bg-card)]/55 text-[var(--text-primary)]"
             onClick={() => setMenuOpen(!menuOpen)}
           >
             {menuOpen ? '✕' : '☰'}
@@ -150,9 +150,9 @@ export default function Navbar() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search products..."
-            className="w-full rounded-full border border-[#241a14]/15 bg-white/70 px-4 py-2 text-sm text-[#171313] placeholder-[#9b8f86] focus:outline-none"
+            className="w-full rounded-full border border-[var(--border)]/15 bg-white/70 px-4 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-placeholder)] focus:outline-none"
           />
-          <button type="submit" className="flex-shrink-0 rounded-full bg-[#171313] px-4 py-2 text-sm font-semibold text-white">Go</button>
+          <button type="submit" className="flex-shrink-0 rounded-full bg-[var(--btn-dark)] px-4 py-2 text-sm font-semibold text-white">Go</button>
         </form>
       </div>
 
@@ -163,7 +163,7 @@ export default function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-[#241a14]/10 bg-[#f6f1ea]/95 backdrop-blur-xl overflow-hidden"
+            className="md:hidden border-t border-[var(--border)]/10 bg-[var(--bg)]/95 backdrop-blur-xl overflow-hidden"
           >
             <div className="flex flex-col gap-1 px-5 py-4">
               {[
@@ -173,20 +173,20 @@ export default function Navbar() {
                 { href: '/contact', label: 'Contact' },
                 { href: '/help', label: 'Help 🎧' },
               ].map(link => (
-                <a key={link.href} href={link.href} className="rounded-xl px-4 py-3 text-sm font-medium text-[#6d625a] transition hover:bg-white/55 hover:text-[#171313]">
+                <a key={link.href} href={link.href} className="rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-muted)] transition hover:bg-[var(--bg-card)]/55 hover:text-[var(--text-primary)]">
                   {link.label}
                 </a>
               ))}
-              <div className="border-t border-[#241a14]/10 mt-2 pt-2">
+              <div className="border-t border-[var(--border)]/10 mt-2 pt-2">
                 {isLoggedIn ? (
                   <>
-                    <a href="/orders" className="block rounded-xl px-4 py-3 text-sm font-medium text-[#6d625a] transition hover:bg-white/55 hover:text-[#171313]">My Orders 📦</a>
-                    <a href="/profile" className="block rounded-xl px-4 py-3 text-sm font-medium text-[#6d625a] transition hover:bg-white/55 hover:text-[#171313]">Profile</a>
+                    <a href="/orders" className="block rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-muted)] transition hover:bg-[var(--bg-card)]/55 hover:text-[var(--text-primary)]">My Orders 📦</a>
+                    <a href="/profile" className="block rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-muted)] transition hover:bg-[var(--bg-card)]/55 hover:text-[var(--text-primary)]">Profile</a>
                   </>
                 ) : (
                   <>
-                    <a href="/auth/login" className="block rounded-xl px-4 py-3 text-sm font-medium text-[#6d625a] transition hover:bg-white/55 hover:text-[#171313]">Login</a>
-                    <a href="/auth/signup" className="block mt-2 rounded-full bg-[#171313] px-4 py-3 text-center text-sm font-semibold text-white">Sign Up</a>
+                    <a href="/auth/login" className="block rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-muted)] transition hover:bg-[var(--bg-card)]/55 hover:text-[var(--text-primary)]">Login</a>
+                    <a href="/auth/signup" className="block mt-2 rounded-full bg-[var(--btn-dark)] px-4 py-3 text-center text-sm font-semibold text-white">Sign Up</a>
                   </>
                 )}
               </div>

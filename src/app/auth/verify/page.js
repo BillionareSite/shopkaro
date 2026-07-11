@@ -63,25 +63,25 @@ export default function VerifyOTP() {
   }
 
   if (verified) return (
-    <main className="min-h-screen bg-[#f6f1ea] flex items-center justify-center px-4">
+    <main className="min-h-screen bg-[var(--bg)] flex items-center justify-center px-4">
       <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
         <div className="text-6xl mb-4">✅</div>
-        <h2 className="text-2xl font-semibold mb-2 text-[#171313]">Email Verified!</h2>
-        <p className="text-[#7b6f66]">Redirecting to login...</p>
+        <h2 className="text-2xl font-semibold mb-2 text-[var(--text-primary)]">Email Verified!</h2>
+        <p className="text-[var(--text-muted)]">Redirecting to login...</p>
       </motion.div>
     </main>
   )
 
   return (
-    <main className="min-h-screen bg-[#f6f1ea] text-[#171313] flex flex-col">
-      <header className="border-b border-[#241a14]/10 bg-[#f6f1ea]/85 backdrop-blur-xl px-5 py-4 flex items-center justify-between">
+    <main className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)] flex flex-col">
+      <header className="border-b border-[var(--border)]/10 bg-[var(--bg)]/85 backdrop-blur-xl px-5 py-4 flex items-center justify-between">
         <a href="/" className="flex items-center gap-3">
-          <div className="grid h-9 w-9 place-items-center rounded-full bg-[#171313] text-xs font-semibold text-white">{config.shortCode}</div>
+          <div className="grid h-9 w-9 place-items-center rounded-full bg-[var(--btn-dark)] text-xs font-semibold text-white">{config.shortCode}</div>
           <span className="text-lg font-semibold">{config.brandName}</span>
         </a>
-        <div className="flex gap-4 text-sm text-[#6d625a]">
-          <a href="/auth/login" className="hover:text-[#171313] transition">Login</a>
-          <a href="/auth/signup" className="hover:text-[#171313] transition">Signup</a>
+        <div className="flex gap-4 text-sm text-[var(--text-muted)]">
+          <a href="/auth/login" className="hover:text-[var(--text-primary)] transition">Login</a>
+          <a href="/auth/signup" className="hover:text-[var(--text-primary)] transition">Signup</a>
         </div>
       </header>
 
@@ -90,7 +90,7 @@ export default function VerifyOTP() {
           <div className="text-center mb-8">
             <p className="text-5xl mb-4">📧</p>
             <h2 className="text-2xl font-semibold mb-2">Check your email</h2>
-            <p className="text-sm text-[#7b6f66]">We sent a 6-digit OTP to</p>
+            <p className="text-sm text-[var(--text-muted)]">We sent a 6-digit OTP to</p>
             <p className="font-semibold text-sm mt-1">{email}</p>
           </div>
 
@@ -105,12 +105,12 @@ export default function VerifyOTP() {
                 value={digit}
                 onChange={(e) => handleOtpChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
-                className="w-12 h-14 text-center text-xl font-bold rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] text-[#171313] focus:outline-none focus:border-[#171313]/30 transition"
+                className="w-12 h-14 text-center text-xl font-bold rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--border)]/30 transition"
               />
             ))}
           </div>
 
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleVerify} disabled={loading} className="w-full rounded-full bg-[#171313] py-3.5 text-sm font-semibold text-white transition hover:bg-[#3a2a21] mb-4">
+          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleVerify} disabled={loading} className="w-full rounded-full bg-[var(--btn-dark)] py-3.5 text-sm font-semibold text-white transition hover:bg-[var(--btn-dark-hover)] mb-4">
             {loading ? 'Verifying...' : 'Verify OTP'}
           </motion.button>
 
@@ -120,13 +120,13 @@ export default function VerifyOTP() {
             </motion.p>
           )}
 
-          <p className="text-center text-sm text-[#9b8f86]">
+          <p className="text-center text-sm text-[var(--text-placeholder)]">
             Didn't receive the OTP?{' '}
-            <button onClick={handleResend} disabled={resending} className="font-semibold text-[#171313] hover:underline">
+            <button onClick={handleResend} disabled={resending} className="font-semibold text-[var(--text-primary)] hover:underline">
               {resending ? 'Sending...' : 'Resend OTP'}
             </button>
           </p>
-          <p className="text-center text-xs text-[#9b8f86] mt-3">OTP expires in 10 minutes</p>
+          <p className="text-center text-xs text-[var(--text-placeholder)] mt-3">OTP expires in 10 minutes</p>
         </motion.div>
       </div>
     </main>

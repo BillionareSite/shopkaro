@@ -85,17 +85,17 @@ export default function ProductDetail({ params }) {
   }
 
   if (loading) return (
-    <main className="min-h-screen bg-[#f6f1ea] flex items-center justify-center">
+    <main className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
       <div className="text-center">
         <div className="w-8 h-8 rounded-full border-2 border-[#171313] border-t-transparent animate-spin mx-auto mb-3"/>
-        <p className="text-[#7b6f66] text-sm">Loading product...</p>
+        <p className="text-[var(--text-muted)] text-sm">Loading product...</p>
       </div>
     </main>
   )
 
   if (!product) return (
-    <main className="min-h-screen bg-[#f6f1ea] flex items-center justify-center">
-      <p className="text-[#7b6f66]">Product not found!</p>
+    <main className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
+      <p className="text-[var(--text-muted)]">Product not found!</p>
     </main>
   )
 
@@ -105,11 +105,11 @@ export default function ProductDetail({ params }) {
   const hasSameDayDelivery = product.sameDayPincodes?.length > 0
 
   return (
-    <main className="min-h-screen bg-[#f6f1ea] text-[#171313]">
+    <main className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)]">
       <Navbar />
 
       <div className="mx-auto max-w-6xl px-5 py-8">
-        <a href="/products" className="inline-flex items-center gap-2 text-sm text-[#7b6f66] hover:text-[#171313] transition mb-8">
+        <a href="/products" className="inline-flex items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition mb-8">
           ← Back to Products
         </a>
 
@@ -118,7 +118,7 @@ export default function ProductDetail({ params }) {
           {/* Image Gallery with Swipe + Arrows */}
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
             <div
-              className="relative overflow-hidden rounded-[2rem] bg-[#eadfd4] shadow-xl shadow-[#3d2619]/10 flex items-center justify-center h-80 md:h-[460px] mb-4 select-none"
+              className="relative overflow-hidden rounded-[2rem] bg-[var(--bg-muted)] shadow-xl shadow-[#3d2619]/10 flex items-center justify-center h-80 md:h-[460px] mb-4 select-none"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
@@ -144,13 +144,13 @@ export default function ProductDetail({ params }) {
                 <>
                   <button
                     onClick={prevImage}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 backdrop-blur shadow-lg flex items-center justify-center text-xl font-bold text-[#171313] hover:bg-white transition z-10"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 backdrop-blur shadow-lg flex items-center justify-center text-xl font-bold text-[var(--text-primary)] hover:bg-white transition z-10"
                   >
                     ‹
                   </button>
                   <button
                     onClick={nextImage}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 backdrop-blur shadow-lg flex items-center justify-center text-xl font-bold text-[#171313] hover:bg-white transition z-10"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 backdrop-blur shadow-lg flex items-center justify-center text-xl font-bold text-[var(--text-primary)] hover:bg-white transition z-10"
                   >
                     ›
                   </button>
@@ -164,7 +164,7 @@ export default function ProductDetail({ params }) {
                     <button
                       key={index}
                       onClick={() => setActiveImage(index)}
-                      className={`rounded-full transition-all ${activeImage === index ? 'w-6 h-2 bg-[#171313]' : 'w-2 h-2 bg-[#171313]/30'}`}
+                      className={`rounded-full transition-all ${activeImage === index ? 'w-6 h-2 bg-[var(--btn-dark)]' : 'w-2 h-2 bg-[var(--btn-dark)]/30'}`}
                     />
                   ))}
                 </div>
@@ -173,7 +173,7 @@ export default function ProductDetail({ params }) {
               {/* Discount Badge */}
               {discount > 0 && (
                 <div className="absolute top-3 left-3 z-10">
-                  <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#171313] shadow">{discount}% off</span>
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow">{discount}% off</span>
                 </div>
               )}
             </div>
@@ -196,7 +196,7 @@ export default function ProductDetail({ params }) {
 
           {/* Product Info */}
           <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }} className="flex flex-col justify-center">
-            <span className="inline-block text-xs font-semibold uppercase tracking-[0.18em] text-[#8c6048] border border-[#241a14]/15 bg-white/55 px-3 py-1 rounded-full w-fit mb-4">
+            <span className="inline-block text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent)] border border-[var(--border)]/15 bg-[var(--bg-card)]/55 px-3 py-1 rounded-full w-fit mb-4">
               {product.category}
             </span>
 
@@ -206,8 +206,8 @@ export default function ProductDetail({ params }) {
               <span className="text-4xl font-semibold">₹{product.price}</span>
               {discount > 0 && (
                 <>
-                  <span className="line-through text-xl text-[#9b8f86]">₹{product.originalPrice}</span>
-                  <span className="rounded-full bg-[#171313] text-white text-xs font-semibold px-3 py-1">{discount}% off</span>
+                  <span className="line-through text-xl text-[var(--text-placeholder)]">₹{product.originalPrice}</span>
+                  <span className="rounded-full bg-[var(--btn-dark)] text-white text-xs font-semibold px-3 py-1">{discount}% off</span>
                 </>
               )}
             </div>
@@ -218,9 +218,9 @@ export default function ProductDetail({ params }) {
 
             {/* Same Day Delivery Checker */}
             {hasSameDayDelivery && (
-              <div className="mb-6 rounded-2xl border border-[#241a14]/10 bg-white p-4">
+              <div className="mb-6 rounded-2xl border border-[var(--border)]/10 bg-white p-4">
                 <p className="text-sm font-semibold mb-1">⚡ Same Day Delivery Available</p>
-                <p className="text-xs text-[#7b6f66] mb-3">Enter your pincode to check availability</p>
+                <p className="text-xs text-[var(--text-muted)] mb-3">Enter your pincode to check availability</p>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -231,13 +231,13 @@ export default function ProductDetail({ params }) {
                       setDeliveryResult(null)
                     }}
                     onKeyDown={(e) => { if (e.key === 'Enter') checkDelivery() }}
-                    className="flex-1 rounded-full border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-2.5 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition"
+                    className="flex-1 rounded-full border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-2.5 text-sm placeholder-[var(--text-placeholder)] focus:outline-none focus:border-[var(--border)]/30 transition"
                     maxLength={6}
                   />
                   <button
                     onClick={checkDelivery}
                     disabled={checkingDelivery || pincode.length !== 6}
-                    className="rounded-full bg-[#171313] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3a2a21] disabled:opacity-50"
+                    className="rounded-full bg-[var(--btn-dark)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--btn-dark-hover)] disabled:opacity-50"
                   >
                     {checkingDelivery ? '...' : 'Check'}
                   </button>
@@ -255,11 +255,11 @@ export default function ProductDetail({ params }) {
             )}
 
             <div className="flex items-center gap-4 mb-8">
-              <span className="text-sm text-[#7b6f66]">Quantity:</span>
-              <div className="flex items-center gap-3 rounded-full border border-[#241a14]/15 bg-white/55 px-4 py-2">
-                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="text-lg font-semibold text-[#7b6f66] hover:text-[#171313] transition">−</button>
+              <span className="text-sm text-[var(--text-muted)]">Quantity:</span>
+              <div className="flex items-center gap-3 rounded-full border border-[var(--border)]/15 bg-[var(--bg-card)]/55 px-4 py-2">
+                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="text-lg font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition">−</button>
                 <span className="w-6 text-center font-semibold">{quantity}</span>
-                <button onClick={() => setQuantity(q => Math.min(product.stock, q + 1))} className="text-lg font-semibold text-[#7b6f66] hover:text-[#171313] transition">+</button>
+                <button onClick={() => setQuantity(q => Math.min(product.stock, q + 1))} className="text-lg font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition">+</button>
               </div>
             </div>
 
@@ -269,7 +269,7 @@ export default function ProductDetail({ params }) {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleAddToCart}
                 disabled={product.stock === 0}
-                className={`flex-1 rounded-full py-4 font-semibold text-sm transition ${added ? 'bg-green-600 text-white' : product.stock === 0 ? 'bg-[#241a14]/10 text-[#9b8f86] cursor-not-allowed' : 'bg-[#171313] text-white hover:bg-[#3a2a21]'}`}
+                className={`flex-1 rounded-full py-4 font-semibold text-sm transition ${added ? 'bg-green-600 text-white' : product.stock === 0 ? 'bg-[#241a14]/10 text-[var(--text-placeholder)] cursor-not-allowed' : 'bg-[var(--btn-dark)] text-white hover:bg-[var(--btn-dark-hover)]'}`}
               >
                 {added ? '✓ Added to Cart!' : 'Add to Cart 🛒'}
               </motion.button>
@@ -277,7 +277,7 @@ export default function ProductDetail({ params }) {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full rounded-full border border-[#241a14]/15 bg-white/55 py-4 font-semibold text-sm transition hover:bg-white/80"
+                  className="w-full rounded-full border border-[var(--border)]/15 bg-[var(--bg-card)]/55 py-4 font-semibold text-sm transition hover:bg-white/80"
                 >
                   View Cart
                 </motion.button>
@@ -289,12 +289,12 @@ export default function ProductDetail({ params }) {
         {/* Description Section */}
         {product.description && (
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} className="mt-12">
-            <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 overflow-hidden">
-              <div className="border-b border-[#241a14]/10 px-8 py-5">
+            <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[var(--shadow)]/5 overflow-hidden">
+              <div className="border-b border-[var(--border)]/10 px-8 py-5">
                 <h2 className="text-xl font-semibold">Product Description</h2>
               </div>
               <div className="px-8 py-6">
-                <p className="text-[#6f6258] text-sm md:text-base leading-relaxed whitespace-pre-line">{product.description}</p>
+                <p className="text-[var(--text-muted)] text-sm md:text-base leading-relaxed whitespace-pre-line">{product.description}</p>
               </div>
             </div>
           </motion.div>
@@ -307,19 +307,19 @@ export default function ProductDetail({ params }) {
             { icon: '✅', title: 'Quality Checked', desc: 'Every product is verified before shipping' },
             { icon: '↩️', title: 'Easy Returns', desc: '7-day hassle-free return policy' }
           ].map((item, i) => (
-            <div key={i} className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-5 flex items-start gap-4">
+            <div key={i} className="rounded-[1.4rem] bg-white shadow-lg shadow-[var(--shadow)]/5 p-5 flex items-start gap-4">
               <span className="text-2xl flex-shrink-0">{item.icon}</span>
               <div>
                 <p className="font-semibold text-sm">{item.title}</p>
-                <p className="text-xs text-[#7b6f66] mt-0.5">{item.desc}</p>
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">{item.desc}</p>
               </div>
             </div>
           ))}
         </motion.div>
       </div>
 
-      <footer className="border-t border-[#241a14]/10 px-5 py-10 mt-12">
-        <p className="text-center text-sm text-[#9b8f86]">© 2026 Shropping. All rights reserved.</p>
+      <footer className="border-t border-[var(--border)]/10 px-5 py-10 mt-12">
+        <p className="text-center text-sm text-[var(--text-placeholder)]">© 2026 Shropping. All rights reserved.</p>
       </footer>
     </main>
   )

@@ -82,19 +82,19 @@ export default function StaffProducts() {
 
   const filtered = products.filter(p => p.name?.toLowerCase().includes(search.toLowerCase()) || p.category?.toLowerCase().includes(search.toLowerCase()))
 
-  if (!admin) return <main className="min-h-screen bg-[#f6f1ea] flex items-center justify-center"><div className="w-8 h-8 rounded-full border-2 border-[#171313] border-t-transparent animate-spin"/></main>
+  if (!admin) return <main className="min-h-screen bg-[var(--bg)] flex items-center justify-center"><div className="w-8 h-8 rounded-full border-2 border-[#171313] border-t-transparent animate-spin"/></main>
 
   return (
-    <main className="min-h-screen bg-[#f6f1ea] text-[#171313]">
-      <header className="sticky top-0 z-50 border-b border-[#241a14]/10 bg-[#f6f1ea]/95 backdrop-blur-xl px-5 py-4">
+    <main className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)]">
+      <header className="sticky top-0 z-50 border-b border-[var(--border)]/10 bg-[var(--bg)]/95 backdrop-blur-xl px-5 py-4">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div className="flex items-center gap-4">
-            <a href="/staff-panel" className="text-sm text-[#7b6f66] hover:text-[#171313] transition">← Panel</a>
+            <a href="/staff-panel" className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition">← Panel</a>
             <span className="text-lg font-semibold">🛍️ Products</span>
           </div>
           <div className="flex items-center gap-3">
             {permissions.includes('add_product') && (
-              <button onClick={() => setShowAddForm(!showAddForm)} className="rounded-full bg-[#171313] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#3a2a21]">
+              <button onClick={() => setShowAddForm(!showAddForm)} className="rounded-full bg-[var(--btn-dark)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--btn-dark-hover)]">
                 {showAddForm ? '✕ Cancel' : '+ Add Product'}
               </button>
             )}
@@ -107,25 +107,25 @@ export default function StaffProducts() {
 
         {/* Add Form */}
         {showAddForm && permissions.includes('add_product') && (
-          <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6">
+          <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[var(--shadow)]/5 p-6">
             <h3 className="text-lg font-semibold mb-4">Add New Product</h3>
             <form onSubmit={handleAdd} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div><label className="text-sm text-[#7b6f66] mb-1 block">Name *</label><input type="text" value={addForm.name} onChange={e => setAddForm({...addForm, name: e.target.value})} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none" required/></div>
-                <div><label className="text-sm text-[#7b6f66] mb-1 block">Category *</label>
-                  <select value={addForm.category} onChange={e => setAddForm({...addForm, category: e.target.value})} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none" required>
+                <div><label className="text-sm text-[var(--text-muted)] mb-1 block">Name *</label><input type="text" value={addForm.name} onChange={e => setAddForm({...addForm, name: e.target.value})} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm focus:outline-none" required/></div>
+                <div><label className="text-sm text-[var(--text-muted)] mb-1 block">Category *</label>
+                  <select value={addForm.category} onChange={e => setAddForm({...addForm, category: e.target.value})} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm focus:outline-none" required>
                     <option value="">Select category</option>
                     {categories.filter(c=>c.isActive).map(c => <option key={c.id} value={c.name}>{c.icon} {c.name}</option>)}
                   </select>
                 </div>
-                <div><label className="text-sm text-[#7b6f66] mb-1 block">Price (₹) *</label><input type="number" value={addForm.price} onChange={e => setAddForm({...addForm, price: e.target.value})} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none" required/></div>
-                <div><label className="text-sm text-[#7b6f66] mb-1 block">Original Price (₹) *</label><input type="number" value={addForm.originalPrice} onChange={e => setAddForm({...addForm, originalPrice: e.target.value})} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none" required/></div>
-                <div><label className="text-sm text-[#7b6f66] mb-1 block">Stock *</label><input type="number" value={addForm.stock} onChange={e => setAddForm({...addForm, stock: e.target.value})} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none" required/></div>
-                <div><label className="text-sm text-[#7b6f66] mb-1 block">Image URL</label><input type="text" value={addForm.images[0]} onChange={e => setAddForm({...addForm, images: [e.target.value]})} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none" placeholder="https://..."/></div>
+                <div><label className="text-sm text-[var(--text-muted)] mb-1 block">Price (₹) *</label><input type="number" value={addForm.price} onChange={e => setAddForm({...addForm, price: e.target.value})} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm focus:outline-none" required/></div>
+                <div><label className="text-sm text-[var(--text-muted)] mb-1 block">Original Price (₹) *</label><input type="number" value={addForm.originalPrice} onChange={e => setAddForm({...addForm, originalPrice: e.target.value})} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm focus:outline-none" required/></div>
+                <div><label className="text-sm text-[var(--text-muted)] mb-1 block">Stock *</label><input type="number" value={addForm.stock} onChange={e => setAddForm({...addForm, stock: e.target.value})} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm focus:outline-none" required/></div>
+                <div><label className="text-sm text-[var(--text-muted)] mb-1 block">Image URL</label><input type="text" value={addForm.images[0]} onChange={e => setAddForm({...addForm, images: [e.target.value]})} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm focus:outline-none" placeholder="https://..."/></div>
               </div>
-              <div><label className="text-sm text-[#7b6f66] mb-1 block">Description</label><textarea value={addForm.description} onChange={e => setAddForm({...addForm, description: e.target.value})} rows={2} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none resize-none"/></div>
+              <div><label className="text-sm text-[var(--text-muted)] mb-1 block">Description</label><textarea value={addForm.description} onChange={e => setAddForm({...addForm, description: e.target.value})} rows={2} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm focus:outline-none resize-none"/></div>
               {addMessage && <p className={`text-sm ${addMessage.includes('success') ? 'text-green-600' : 'text-red-500'}`}>{addMessage}</p>}
-              <button type="submit" disabled={submitting} className="w-full rounded-full bg-[#171313] py-3.5 text-sm font-semibold text-white transition hover:bg-[#3a2a21] disabled:opacity-50">
+              <button type="submit" disabled={submitting} className="w-full rounded-full bg-[var(--btn-dark)] py-3.5 text-sm font-semibold text-white transition hover:bg-[var(--btn-dark-hover)] disabled:opacity-50">
                 {submitting ? 'Adding...' : 'Add Product'}
               </button>
             </form>
@@ -134,8 +134,8 @@ export default function StaffProducts() {
 
         {/* Search */}
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9b8f86]">🔍</span>
-          <input type="text" placeholder="Search products..." value={search} onChange={e => setSearch(e.target.value)} className="w-full rounded-full border border-[#241a14]/15 bg-white pl-10 pr-4 py-2.5 text-sm placeholder-[#9b8f86] focus:outline-none transition"/>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-placeholder)]">🔍</span>
+          <input type="text" placeholder="Search products..." value={search} onChange={e => setSearch(e.target.value)} className="w-full rounded-full border border-[var(--border)]/15 bg-white pl-10 pr-4 py-2.5 text-sm placeholder-[var(--text-placeholder)] focus:outline-none transition"/>
         </div>
 
         {message && <p className={`text-sm text-center ${message.includes('!') ? 'text-green-600' : 'text-red-500'}`}>{message}</p>}
@@ -145,16 +145,16 @@ export default function StaffProducts() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map(product => (
-              <div key={product.id} className={`rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 overflow-hidden ${product.stock === 0 ? 'border-2 border-red-200' : product.stock <= 5 ? 'border-2 border-amber-200' : ''}`}>
-                <div className="aspect-square bg-[#eadfd4] overflow-hidden">
+              <div key={product.id} className={`rounded-[1.4rem] bg-white shadow-lg shadow-[var(--shadow)]/5 overflow-hidden ${product.stock === 0 ? 'border-2 border-red-200' : product.stock <= 5 ? 'border-2 border-amber-200' : ''}`}>
+                <div className="aspect-square bg-[var(--bg-muted)] overflow-hidden">
                   {product.images?.[0] ? <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover"/> : <div className="grid h-full place-items-center text-4xl">🛍️</div>}
                 </div>
                 <div className="p-4">
                   <p className="font-semibold truncate">{product.name}</p>
-                  <p className="text-xs text-[#7b6f66] mt-0.5">{product.category}</p>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5">{product.category}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="font-semibold text-sm">₹{product.price}</span>
-                    {product.originalPrice > product.price && <span className="text-xs text-[#9b8f86] line-through">₹{product.originalPrice}</span>}
+                    {product.originalPrice > product.price && <span className="text-xs text-[var(--text-placeholder)] line-through">₹{product.originalPrice}</span>}
                   </div>
                   <p className={`text-xs mt-1 font-medium ${product.stock === 0 ? 'text-red-600' : product.stock <= 5 ? 'text-amber-600' : 'text-green-600'}`}>
                     {product.stock === 0 ? '🚫 Out of Stock' : product.stock <= 5 ? `⚠️ Only ${product.stock} left` : `✓ ${product.stock} in stock`}
@@ -163,7 +163,7 @@ export default function StaffProducts() {
                     {permissions.includes('edit_product') && (
                       <button
                         onClick={() => { setEditProduct(product); setEditForm({ name: product.name, description: product.description || '', price: product.price, originalPrice: product.originalPrice, category: product.category, stock: product.stock }) }}
-                        className="flex-1 text-xs px-3 py-2 rounded-full border border-[#241a14]/15 text-[#6d625a] hover:bg-[#f6f1ea] transition font-medium"
+                        className="flex-1 text-xs px-3 py-2 rounded-full border border-[var(--border)]/15 text-[var(--text-muted)] hover:bg-[var(--bg)] transition font-medium"
                       >
                         ✏️ Edit
                       </button>
@@ -180,7 +180,7 @@ export default function StaffProducts() {
                 </div>
               </div>
             ))}
-            {filtered.length === 0 && <div className="col-span-full text-center py-20 rounded-[2rem] border border-[#241a14]/10 bg-white/55"><p className="text-4xl mb-4">🛍️</p><p className="text-[#7b6f66]">No products found!</p></div>}
+            {filtered.length === 0 && <div className="col-span-full text-center py-20 rounded-[2rem] border border-[var(--border)]/10 bg-[var(--bg-card)]/55"><p className="text-4xl mb-4">🛍️</p><p className="text-[var(--text-muted)]">No products found!</p></div>}
           </div>
         )}
       </div>
@@ -191,17 +191,17 @@ export default function StaffProducts() {
           <div className="bg-white rounded-[1.4rem] p-6 w-full max-w-md shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold">Edit Product</h3>
-              <button onClick={() => { setEditProduct(null); setEditForm(null) }} className="text-[#9b8f86] hover:text-[#171313] text-xl">✕</button>
+              <button onClick={() => { setEditProduct(null); setEditForm(null) }} className="text-[var(--text-placeholder)] hover:text-[var(--text-primary)] text-xl">✕</button>
             </div>
             <div className="space-y-4">
-              <div><label className="text-sm text-[#7b6f66] mb-1 block">Name</label><input type="text" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none"/></div>
+              <div><label className="text-sm text-[var(--text-muted)] mb-1 block">Name</label><input type="text" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm focus:outline-none"/></div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-sm text-[#7b6f66] mb-1 block">Price (₹)</label><input type="number" value={editForm.price} onChange={e => setEditForm({...editForm, price: e.target.value})} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none"/></div>
-                <div><label className="text-sm text-[#7b6f66] mb-1 block">Stock</label><input type="number" value={editForm.stock} onChange={e => setEditForm({...editForm, stock: e.target.value})} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none"/></div>
+                <div><label className="text-sm text-[var(--text-muted)] mb-1 block">Price (₹)</label><input type="number" value={editForm.price} onChange={e => setEditForm({...editForm, price: e.target.value})} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm focus:outline-none"/></div>
+                <div><label className="text-sm text-[var(--text-muted)] mb-1 block">Stock</label><input type="number" value={editForm.stock} onChange={e => setEditForm({...editForm, stock: e.target.value})} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm focus:outline-none"/></div>
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={() => { setEditProduct(null); setEditForm(null) }} className="flex-1 rounded-full border border-[#241a14]/15 py-3 text-sm font-semibold text-[#6d625a]">Cancel</button>
-                <button onClick={handleEdit} disabled={saving} className="flex-1 rounded-full bg-[#171313] py-3 text-sm font-semibold text-white disabled:opacity-50">
+                <button onClick={() => { setEditProduct(null); setEditForm(null) }} className="flex-1 rounded-full border border-[var(--border)]/15 py-3 text-sm font-semibold text-[var(--text-muted)]">Cancel</button>
+                <button onClick={handleEdit} disabled={saving} className="flex-1 rounded-full bg-[var(--btn-dark)] py-3 text-sm font-semibold text-white disabled:opacity-50">
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>

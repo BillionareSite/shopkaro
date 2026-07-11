@@ -268,11 +268,11 @@ export default function Checkout() {
 
   const ScreenshotUploader = ({ fileRef }) => (
     <div>
-      <label className="text-sm text-[#7b6f66] mb-1 block font-medium">Payment Screenshot *</label>
+      <label className="text-sm text-[var(--text-muted)] mb-1 block font-medium">Payment Screenshot *</label>
       <input ref={fileRef} type="file" accept="image/*" onChange={(e) => handleScreenshotUpload(e, fileRef)} className="hidden"/>
       {paymentProof.screenshotPreview ? (
         <div className="relative">
-          <img src={paymentProof.screenshotPreview} alt="Payment Screenshot" className="w-full h-44 object-cover rounded-2xl border border-[#241a14]/15"/>
+          <img src={paymentProof.screenshotPreview} alt="Payment Screenshot" className="w-full h-44 object-cover rounded-2xl border border-[var(--border)]/15"/>
           {uploadingScreenshot && (
             <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center">
               <div className="text-center">
@@ -286,25 +286,25 @@ export default function Checkout() {
           <button type="button" onClick={() => clearScreenshot(fileRef)} className="absolute top-2 left-2 bg-black/60 text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center hover:bg-black transition">✕</button>
         </div>
       ) : (
-        <button type="button" onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-[#241a14]/20 rounded-2xl py-10 text-center hover:border-[#241a14]/40 hover:bg-white/50 transition">
+        <button type="button" onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-[var(--border)]/20 rounded-2xl py-10 text-center hover:border-[#241a14]/40 hover:bg-white/50 transition">
           <p className="text-3xl mb-2">📸</p>
-          <p className="text-sm font-semibold text-[#7b6f66]">Click to Upload Screenshot</p>
-          <p className="text-xs text-[#9b8f86] mt-1">JPG, PNG — max 5MB</p>
+          <p className="text-sm font-semibold text-[var(--text-muted)]">Click to Upload Screenshot</p>
+          <p className="text-xs text-[var(--text-placeholder)] mt-1">JPG, PNG — max 5MB</p>
         </button>
       )}
     </div>
   )
 
   if (ordered) return (
-    <div className="min-h-screen bg-[#f6f1ea] overflow-x-hidden flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[var(--bg)] overflow-x-hidden flex items-center justify-center px-4">
       <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center max-w-md w-full">
         <div className="text-6xl mb-6">🎉</div>
-        <h2 className="text-3xl font-semibold text-[#171313] mb-3">Order Placed!</h2>
-        <p className="text-[#7b6f66] mb-1">Thank you for shopping with {config.brandName}.</p>
-        <div className="bg-white rounded-2xl border border-[#241a14]/10 px-6 py-4 my-4 w-full">
-          <p className="text-xs text-[#9b8f86]">Your Order ID</p>
-          <p className="font-mono font-bold text-[#171313] text-xl mt-1">{orderId}</p>
-          <p className="text-xs text-[#9b8f86] mt-2">📧 Order confirmation sent to your email</p>
+        <h2 className="text-3xl font-semibold text-[var(--text-primary)] mb-3">Order Placed!</h2>
+        <p className="text-[var(--text-muted)] mb-1">Thank you for shopping with {config.brandName}.</p>
+        <div className="bg-white rounded-2xl border border-[var(--border)]/10 px-6 py-4 my-4 w-full">
+          <p className="text-xs text-[var(--text-placeholder)]">Your Order ID</p>
+          <p className="font-mono font-bold text-[var(--text-primary)] text-xl mt-1">{orderId}</p>
+          <p className="text-xs text-[var(--text-placeholder)] mt-2">📧 Order confirmation sent to your email</p>
         </div>
         {(placedPaymentMethod === 'upi' || placedPaymentMethod === 'bank') && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl px-6 py-4 mb-6 text-left">
@@ -319,19 +319,19 @@ export default function Checkout() {
           </div>
         )}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <a href="/orders"><motion.button whileHover={{ scale: 1.05 }} className="w-full sm:w-auto rounded-full bg-[#171313] px-8 py-3.5 text-sm font-semibold text-white">View Orders</motion.button></a>
-          <a href="/products"><motion.button whileHover={{ scale: 1.05 }} className="w-full sm:w-auto rounded-full border border-[#241a14]/15 px-8 py-3.5 text-sm font-semibold text-[#171313]">Continue Shopping</motion.button></a>
+          <a href="/orders"><motion.button whileHover={{ scale: 1.05 }} className="w-full sm:w-auto rounded-full bg-[var(--btn-dark)] px-8 py-3.5 text-sm font-semibold text-white">View Orders</motion.button></a>
+          <a href="/products"><motion.button whileHover={{ scale: 1.05 }} className="w-full sm:w-auto rounded-full border border-[var(--border)]/15 px-8 py-3.5 text-sm font-semibold text-[var(--text-primary)]">Continue Shopping</motion.button></a>
         </div>
       </motion.div>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-[#f6f1ea] text-[#171313] overflow-x-hidden" style={{ maxWidth: '100vw' }}>
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)] overflow-x-hidden" style={{ maxWidth: '100vw' }}>
       <Navbar />
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-5 py-8 pb-16 box-border">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6 sm:mb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8c6048]">Almost there</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">Almost there</p>
           <h1 className="mt-2 text-2xl sm:text-3xl font-semibold tracking-tight">Checkout</h1>
         </motion.div>
 
@@ -341,47 +341,47 @@ export default function Checkout() {
           <div className="space-y-4 min-w-0 w-full">
 
             {/* Delivery */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-5 sm:p-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-[1.4rem] bg-white shadow-lg shadow-[var(--shadow)]/5 p-5 sm:p-6">
               <h3 className="text-lg font-semibold mb-5">📍 Delivery Details</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm text-[#7b6f66] mb-1 block">Full Name</label>
-                  <input type="text" placeholder="Rahul Sharma" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] text-[#171313] focus:outline-none focus:border-[#171313]/30 transition"/>
+                  <label className="text-sm text-[var(--text-muted)] mb-1 block">Full Name</label>
+                  <input type="text" placeholder="Rahul Sharma" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm placeholder-[var(--text-placeholder)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--border)]/30 transition"/>
                 </div>
                 <div>
-                  <label className="text-sm text-[#7b6f66] mb-1 block">Phone Number</label>
-                  <input type="tel" placeholder="9876543210" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] text-[#171313] focus:outline-none focus:border-[#171313]/30 transition"/>
+                  <label className="text-sm text-[var(--text-muted)] mb-1 block">Phone Number</label>
+                  <input type="tel" placeholder="9876543210" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm placeholder-[var(--text-placeholder)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--border)]/30 transition"/>
                 </div>
                 <div>
-                  <label className="text-sm text-[#7b6f66] mb-1 block">WhatsApp Number <span className="text-[#9b8f86] text-xs">(Optional)</span></label>
+                  <label className="text-sm text-[var(--text-muted)] mb-1 block">WhatsApp Number <span className="text-[var(--text-placeholder)] text-xs">(Optional)</span></label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg">💬</span>
-                    <input type="tel" placeholder="WhatsApp number for updates" value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] pl-10 pr-4 py-3 text-sm placeholder-[#9b8f86] text-[#171313] focus:outline-none focus:border-[#171313]/30 transition"/>
+                    <input type="tel" placeholder="WhatsApp number for updates" value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] pl-10 pr-4 py-3 text-sm placeholder-[var(--text-placeholder)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--border)]/30 transition"/>
                   </div>
-                  <p className="text-xs text-[#8c6048] mt-1.5">📲 Add WhatsApp for faster delivery coordination!</p>
+                  <p className="text-xs text-[var(--accent)] mt-1.5">📲 Add WhatsApp for faster delivery coordination!</p>
                 </div>
                 <div>
-                  <label className="text-sm text-[#7b6f66] mb-1 block">Pincode</label>
-                  <input type="text" placeholder="248001" value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] text-[#171313] focus:outline-none focus:border-[#171313]/30 transition"/>
+                  <label className="text-sm text-[var(--text-muted)] mb-1 block">Pincode</label>
+                  <input type="text" placeholder="248001" value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm placeholder-[var(--text-placeholder)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--border)]/30 transition"/>
                 </div>
                 <div>
-                  <label className="text-sm text-[#7b6f66] mb-1 block">Email</label>
-                  <input type="email" value={userEmail} readOnly className="w-full rounded-2xl border border-[#241a14]/10 bg-[#f6f1ea]/50 px-4 py-3 text-sm text-[#9b8f86] cursor-not-allowed"/>
+                  <label className="text-sm text-[var(--text-muted)] mb-1 block">Email</label>
+                  <input type="email" value={userEmail} readOnly className="w-full rounded-2xl border border-[var(--border)]/10 bg-[var(--bg)]/50 px-4 py-3 text-sm text-[var(--text-placeholder)] cursor-not-allowed"/>
                 </div>
                 <div>
-                  <label className="text-sm text-[#7b6f66] mb-1 block">Full Address</label>
-                  <textarea placeholder="House No, Street, Area, City" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} rows={3} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] text-[#171313] focus:outline-none focus:border-[#171313]/30 transition resize-none"/>
+                  <label className="text-sm text-[var(--text-muted)] mb-1 block">Full Address</label>
+                  <textarea placeholder="House No, Street, Area, City" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} rows={3} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm placeholder-[var(--text-placeholder)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--border)]/30 transition resize-none"/>
                 </div>
               </div>
             </motion.div>
 
             {/* Payment */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-5 sm:p-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="rounded-[1.4rem] bg-white shadow-lg shadow-[var(--shadow)]/5 p-5 sm:p-6">
               <h3 className="text-lg font-semibold mb-4">💳 Payment Method</h3>
               {loadingSettings ? (
-                <p className="text-sm text-[#7b6f66]">Loading payment options...</p>
+                <p className="text-sm text-[var(--text-muted)]">Loading payment options...</p>
               ) : paymentOptions.length === 0 ? (
-                <p className="text-sm text-[#7b6f66]">No payment methods available. Contact support.</p>
+                <p className="text-sm text-[var(--text-muted)]">No payment methods available. Contact support.</p>
               ) : (
                 <div className="space-y-3">
                   {paymentOptions.map(option => (
@@ -394,12 +394,12 @@ export default function Checkout() {
                         if (upiFileRef.current) upiFileRef.current.value = ''
                         if (bankFileRef.current) bankFileRef.current.value = ''
                       }}
-                      className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition text-left ${paymentMethod === option.id ? 'border-[#171313] bg-[#171313]' : 'border-[#241a14]/15 bg-[#f6f1ea] hover:border-[#241a14]/30'}`}
+                      className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition text-left ${paymentMethod === option.id ? 'border-[#171313] bg-[var(--btn-dark)]' : 'border-[var(--border)]/15 bg-[var(--bg)] hover:border-[var(--border)]/30'}`}
                     >
                       <span className="text-2xl flex-shrink-0">{option.icon}</span>
                       <div className="flex-1 min-w-0">
-                        <p className={`font-semibold text-sm ${paymentMethod === option.id ? 'text-white' : 'text-[#171313]'}`}>{option.label}</p>
-                        <p className={`text-xs mt-0.5 ${paymentMethod === option.id ? 'text-white/60' : 'text-[#9b8f86]'}`}>{option.desc}</p>
+                        <p className={`font-semibold text-sm ${paymentMethod === option.id ? 'text-white' : 'text-[var(--text-primary)]'}`}>{option.label}</p>
+                        <p className={`text-xs mt-0.5 ${paymentMethod === option.id ? 'text-white/60' : 'text-[var(--text-placeholder)]'}`}>{option.desc}</p>
                       </div>
                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${paymentMethod === option.id ? 'border-white' : 'border-[#9b8f86]'}`}>
                         {paymentMethod === option.id && <div className="w-2.5 h-2.5 rounded-full bg-white"/>}
@@ -441,12 +441,12 @@ export default function Checkout() {
                         <p className="text-xs text-blue-600 mt-2">After payment, fill details below and upload screenshot.</p>
                       </div>
                       <div>
-                        <label className="text-sm text-[#7b6f66] mb-1 block font-medium">Sender Name (as in UPI app) *</label>
-                        <input type="text" placeholder="Name shown in your UPI app" value={paymentProof.senderName} onChange={(e) => setPaymentProof(prev => ({ ...prev, senderName: e.target.value }))} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] text-[#171313] focus:outline-none focus:border-[#171313]/30 transition"/>
+                        <label className="text-sm text-[var(--text-muted)] mb-1 block font-medium">Sender Name (as in UPI app) *</label>
+                        <input type="text" placeholder="Name shown in your UPI app" value={paymentProof.senderName} onChange={(e) => setPaymentProof(prev => ({ ...prev, senderName: e.target.value }))} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm placeholder-[var(--text-placeholder)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--border)]/30 transition"/>
                       </div>
                       <div>
-                        <label className="text-sm text-[#7b6f66] mb-1 block font-medium">UTR / Transaction Number *</label>
-                        <input type="text" placeholder="12-digit UTR from your payment app" value={paymentProof.utr} onChange={(e) => setPaymentProof(prev => ({ ...prev, utr: e.target.value }))} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] text-[#171313] focus:outline-none focus:border-[#171313]/30 transition"/>
+                        <label className="text-sm text-[var(--text-muted)] mb-1 block font-medium">UTR / Transaction Number *</label>
+                        <input type="text" placeholder="12-digit UTR from your payment app" value={paymentProof.utr} onChange={(e) => setPaymentProof(prev => ({ ...prev, utr: e.target.value }))} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm placeholder-[var(--text-placeholder)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--border)]/30 transition"/>
                       </div>
                       <ScreenshotUploader fileRef={upiFileRef} />
                     </div>
@@ -468,12 +468,12 @@ export default function Checkout() {
                         <p className="text-xs text-purple-600 mt-2">After transfer, fill details below and upload proof.</p>
                       </div>
                       <div>
-                        <label className="text-sm text-[#7b6f66] mb-1 block font-medium">Account Holder Name *</label>
-                        <input type="text" placeholder="Name on your bank account" value={paymentProof.senderName} onChange={(e) => setPaymentProof(prev => ({ ...prev, senderName: e.target.value }))} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] text-[#171313] focus:outline-none focus:border-[#171313]/30 transition"/>
+                        <label className="text-sm text-[var(--text-muted)] mb-1 block font-medium">Account Holder Name *</label>
+                        <input type="text" placeholder="Name on your bank account" value={paymentProof.senderName} onChange={(e) => setPaymentProof(prev => ({ ...prev, senderName: e.target.value }))} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm placeholder-[var(--text-placeholder)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--border)]/30 transition"/>
                       </div>
                       <div>
-                        <label className="text-sm text-[#7b6f66] mb-1 block font-medium">UTR / Transaction Reference *</label>
-                        <input type="text" placeholder="Transaction reference from your bank" value={paymentProof.utr} onChange={(e) => setPaymentProof(prev => ({ ...prev, utr: e.target.value }))} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] text-[#171313] focus:outline-none focus:border-[#171313]/30 transition"/>
+                        <label className="text-sm text-[var(--text-muted)] mb-1 block font-medium">UTR / Transaction Reference *</label>
+                        <input type="text" placeholder="Transaction reference from your bank" value={paymentProof.utr} onChange={(e) => setPaymentProof(prev => ({ ...prev, utr: e.target.value }))} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm placeholder-[var(--text-placeholder)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--border)]/30 transition"/>
                       </div>
                       <ScreenshotUploader fileRef={bankFileRef} />
                     </div>
@@ -483,7 +483,7 @@ export default function Checkout() {
             </motion.div>
 
             {/* Coupon */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-5 sm:p-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="rounded-[1.4rem] bg-white shadow-lg shadow-[var(--shadow)]/5 p-5 sm:p-6">
               <h3 className="text-lg font-semibold mb-4">🎟️ Have a Coupon?</h3>
               {couponCode ? (
                 <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-2xl px-4 py-3 gap-3">
@@ -495,8 +495,8 @@ export default function Checkout() {
                 </div>
               ) : (
                 <div className="flex gap-2">
-                  <input type="text" placeholder="Enter coupon code" value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} onKeyDown={(e) => { if (e.key === 'Enter') handleApplyCoupon() }} className="flex-1 min-w-0 rounded-full border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] text-[#171313] focus:outline-none focus:border-[#171313]/30 transition uppercase"/>
-                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleApplyCoupon} disabled={applyingCoupon || !couponInput.trim()} className="rounded-full bg-[#171313] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#3a2a21] disabled:opacity-50 flex-shrink-0">
+                  <input type="text" placeholder="Enter coupon code" value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} onKeyDown={(e) => { if (e.key === 'Enter') handleApplyCoupon() }} className="flex-1 min-w-0 rounded-full border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm placeholder-[var(--text-placeholder)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--border)]/30 transition uppercase"/>
+                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleApplyCoupon} disabled={applyingCoupon || !couponInput.trim()} className="rounded-full bg-[var(--btn-dark)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--btn-dark-hover)] disabled:opacity-50 flex-shrink-0">
                     {applyingCoupon ? '...' : 'Apply'}
                   </motion.button>
                 </div>
@@ -507,39 +507,39 @@ export default function Checkout() {
 
           {/* RIGHT — order summary */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex flex-col gap-4 min-w-0 w-full">
-            <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-5 sm:p-6">
+            <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[var(--shadow)]/5 p-5 sm:p-6">
               <h3 className="text-lg font-semibold mb-4">🧾 Order Summary</h3>
               {cart.length === 0 ? (
-                <p className="text-sm text-[#7b6f66]">Your cart is empty.</p>
+                <p className="text-sm text-[var(--text-muted)]">Your cart is empty.</p>
               ) : (
                 <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
                   {cart.map((item, i) => (
                     <div key={i} className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-[#eadfd4]">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-[var(--bg-muted)]">
                         {item.images?.[0] ? <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover"/> : <div className="grid h-full place-items-center">🛍️</div>}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold truncate text-[#171313]">{item.name}</p>
-                        <p className="text-xs text-[#9b8f86]">Qty: {item.quantity}</p>
+                        <p className="text-sm font-semibold truncate text-[var(--text-primary)]">{item.name}</p>
+                        <p className="text-xs text-[var(--text-placeholder)]">Qty: {item.quantity}</p>
                       </div>
-                      <span className="text-sm font-semibold flex-shrink-0 text-[#171313]">₹{item.price * item.quantity}</span>
+                      <span className="text-sm font-semibold flex-shrink-0 text-[var(--text-primary)]">₹{item.price * item.quantity}</span>
                     </div>
                   ))}
                 </div>
               )}
-              <div className="border-t border-[#241a14]/10 mt-4 pt-4 space-y-2">
-                <div className="flex justify-between text-sm"><span className="text-[#7b6f66]">Subtotal</span><span className="text-[#171313]">₹{subtotal}</span></div>
+              <div className="border-t border-[var(--border)]/10 mt-4 pt-4 space-y-2">
+                <div className="flex justify-between text-sm"><span className="text-[var(--text-muted)]">Subtotal</span><span className="text-[var(--text-primary)]">₹{subtotal}</span></div>
                 {discount > 0 && <div className="flex justify-between text-sm"><span className="text-green-600">Discount ({couponCode})</span><span className="text-green-600">−₹{discount}</span></div>}
-                <div className="flex justify-between text-sm"><span className="text-[#7b6f66]">Delivery</span><span className="text-green-600">FREE</span></div>
+                <div className="flex justify-between text-sm"><span className="text-[var(--text-muted)]">Delivery</span><span className="text-green-600">FREE</span></div>
                 {paymentMethod && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-[#7b6f66]">Payment</span>
-                    <span className="font-medium text-[#171313]">{paymentOptions.find(p => p.id === paymentMethod)?.label || paymentMethod}</span>
+                    <span className="text-[var(--text-muted)]">Payment</span>
+                    <span className="font-medium text-[var(--text-primary)]">{paymentOptions.find(p => p.id === paymentMethod)?.label || paymentMethod}</span>
                   </div>
                 )}
-                <div className="flex justify-between font-semibold text-lg pt-2 border-t border-[#241a14]/10">
-                  <span className="text-[#171313]">Total</span>
-                  <span className="text-[#171313]">₹{total}</span>
+                <div className="flex justify-between font-semibold text-lg pt-2 border-t border-[var(--border)]/10">
+                  <span className="text-[var(--text-primary)]">Total</span>
+                  <span className="text-[var(--text-primary)]">₹{total}</span>
                 </div>
               </div>
               {discount > 0 && (
@@ -547,7 +547,7 @@ export default function Checkout() {
                   <p className="text-sm text-green-700 font-medium">🎉 You save ₹{discount} with {couponCode}!</p>
                 </div>
               )}
-              <p className="text-xs text-[#9b8f86] mt-3 text-center">🔒 Final amount is verified securely on our server before payment.</p>
+              <p className="text-xs text-[var(--text-placeholder)] mt-3 text-center">🔒 Final amount is verified securely on our server before payment.</p>
             </div>
 
             {needsPaymentProof && (
@@ -569,7 +569,7 @@ export default function Checkout() {
               whileTap={{ scale: 0.98 }}
               onClick={handlePlaceOrder}
               disabled={placing || !paymentMethod || uploadingScreenshot}
-              className="w-full rounded-full bg-[#171313] py-4 font-semibold text-sm text-white transition hover:bg-[#3a2a21] disabled:opacity-50"
+              className="w-full rounded-full bg-[var(--btn-dark)] py-4 font-semibold text-sm text-white transition hover:bg-[var(--btn-dark-hover)] disabled:opacity-50"
             >
               {placing
                 ? (isRazorpay ? 'Opening Payment...' : 'Placing Order...')
@@ -579,13 +579,13 @@ export default function Checkout() {
                 ? `Pay ₹${total} via Razorpay 🔒`
                 : `Place Order 🎉 — ₹${total}`}
             </motion.button>
-            <p className="text-center text-xs text-[#9b8f86]">📧 Order confirmation will be sent to your email</p>
+            <p className="text-center text-xs text-[var(--text-placeholder)]">📧 Order confirmation will be sent to your email</p>
           </motion.div>
         </div>
       </div>
 
-      <footer className="border-t border-[#241a14]/10 px-5 py-10">
-        <p className="text-center text-sm text-[#9b8f86]">{config.copyright}</p>
+      <footer className="border-t border-[var(--border)]/10 px-5 py-10">
+        <p className="text-center text-sm text-[var(--text-placeholder)]">{config.copyright}</p>
       </footer>
     </div>
   )

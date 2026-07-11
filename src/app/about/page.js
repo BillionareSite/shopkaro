@@ -5,19 +5,19 @@ import config from '@/lib/config'
 
 export default function About() {
   return (
-    <main className="min-h-screen bg-[#f6f1ea] text-[#171313]">
+    <main className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)]">
       <Navbar />
 
       {/* Hero */}
       <section className="text-center py-20 px-5">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <p className="w-fit mx-auto rounded-full border border-[#241a14]/10 bg-white/55 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#8c6048]">
+          <p className="w-fit mx-auto rounded-full border border-[var(--border)]/10 bg-[var(--bg-card)]/55 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
             About Us
           </p>
           <h1 className="mt-6 text-4xl md:text-6xl font-semibold leading-tight tracking-tight">
             We are {config.brandName} 🛍️
           </h1>
-          <p className="mt-4 text-[#6f6258] max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
+          <p className="mt-4 text-[var(--text-muted)] max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
             {config.brandName} is your one stop destination for everything — from electronics to fashion, home goods to accessories. We bring you the best deals at the best prices.
           </p>
         </motion.div>
@@ -37,10 +37,10 @@ export default function About() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6 text-center"
+              className="rounded-[1.4rem] bg-white shadow-lg shadow-[var(--shadow)]/5 p-6 text-center"
             >
               <p className="text-3xl font-semibold mb-1">{stat.number}</p>
-              <p className="text-sm text-[#7b6f66]">{stat.label}</p>
+              <p className="text-sm text-[var(--text-muted)]">{stat.label}</p>
             </motion.div>
           ))}
         </div>
@@ -49,12 +49,12 @@ export default function About() {
       {/* Our Story */}
       <section className="px-5 py-10">
         <div className="max-w-4xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-8 md:p-12">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-[1.4rem] bg-white shadow-lg shadow-[var(--shadow)]/5 p-8 md:p-12">
             <h2 className="text-2xl md:text-3xl font-semibold mb-6">Our Story 📖</h2>
-            <div className="space-y-4 text-[#6f6258] text-sm md:text-base leading-relaxed">
+            <div className="space-y-4 text-[var(--text-muted)] text-sm md:text-base leading-relaxed">
               <p>{config.brandName} was born from a simple idea — everyone deserves access to quality products at fair prices. We started as a small operation and have been growing ever since.</p>
               <p>We specialize in secondhand electronics, fashion, home goods and much more. Every product on our platform is carefully curated to ensure quality and value for money.</p>
-              <p>Our mission is simple: <span className="text-[#171313] font-semibold">make shopping easy, affordable and enjoyable for everyone.</span></p>
+              <p>Our mission is simple: <span className="text-[var(--text-primary)] font-semibold">make shopping easy, affordable and enjoyable for everyone.</span></p>
             </div>
           </motion.div>
         </div>
@@ -78,11 +78,11 @@ export default function About() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6 hover:shadow-xl transition"
+                className="rounded-[1.4rem] bg-white shadow-lg shadow-[var(--shadow)]/5 p-6 hover:shadow-xl transition"
               >
                 <p className="text-3xl mb-3">{item.icon}</p>
                 <h3 className="font-semibold mb-2">{item.title}</h3>
-                <p className="text-sm text-[#7b6f66] leading-relaxed">{item.desc}</p>
+                <p className="text-sm text-[var(--text-muted)] leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -103,11 +103,11 @@ export default function About() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6 text-center"
+                className="rounded-[1.4rem] bg-white shadow-lg shadow-[var(--shadow)]/5 p-6 text-center"
               >
                 <p className="text-5xl mb-4">{member.emoji}</p>
                 <h3 className="font-semibold text-lg">{member.name}</h3>
-                <p className="text-sm text-[#7b6f66] mt-1">{member.role}</p>
+                <p className="text-sm text-[var(--text-muted)] mt-1">{member.role}</p>
               </motion.div>
             ))}
           </div>
@@ -117,12 +117,12 @@ export default function About() {
       {/* CTA */}
       <section className="px-5 py-10 mb-10">
         <div className="max-w-4xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-[2rem] bg-[#171313] p-10 text-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-[2rem] bg-[var(--btn-dark)] p-10 text-center">
             <h2 className="text-2xl md:text-3xl font-semibold text-white mb-3">Ready to Start Shopping? 🛒</h2>
-            <p className="text-[#9b8f86] mb-8">Discover thousands of products at amazing prices</p>
+            <p className="text-[var(--text-placeholder)] mb-8">Discover thousands of products at amazing prices</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a href="/products">
-                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-[#171313] transition hover:bg-[#f6f1ea]">
+                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-[var(--text-primary)] transition hover:bg-[var(--bg)]">
                   Shop Now →
                 </motion.button>
               </a>
@@ -137,8 +137,8 @@ export default function About() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#241a14]/10 px-5 py-10">
-        <p className="text-center text-sm text-[#9b8f86]">{config.copyright}</p>
+      <footer className="border-t border-[var(--border)]/10 px-5 py-10">
+        <p className="text-center text-sm text-[var(--text-placeholder)]">{config.copyright}</p>
       </footer>
     </main>
   )

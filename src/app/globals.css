@@ -1,8 +1,35 @@
 @import "tailwindcss";
 
+/* ── DROPEZ THEME VARIABLES ── */
+/* These are set by layout.js from theme.js */
+/* Change theme in src/lib/theme.js — never edit these manually */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #f8f7ff;
+  --bg-card: #ffffff;
+  --bg-muted: #ede9fe;
+  --bg-input: #f3f0ff;
+
+  --text-primary: #1e1b4b;
+  --text-muted: #6b7280;
+  --text-placeholder: #9ca3af;
+  --text-light: #a1a1aa;
+
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+  --accent-light: #ede9fe;
+
+  --border: #1e1b4b;
+  --border-light: #e5e7eb;
+  --shadow: #1e1b4b;
+
+  --btn-dark: #1e1b4b;
+  --btn-dark-hover: #312e81;
+
+  --background: var(--bg);
+  --foreground: var(--text-primary);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
 @theme inline {
@@ -12,15 +39,26 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Never apply dark mode to main site — preowned handles its own dark theme */
+body {
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+/* ── Utility classes you can use anywhere ── */
+.theme-bg          { background-color: var(--bg); }
+.theme-bg-card     { background-color: var(--bg-card); }
+.theme-bg-muted    { background-color: var(--bg-muted); }
+.theme-bg-input    { background-color: var(--bg-input); }
+.theme-text        { color: var(--text-primary); }
+.theme-text-muted  { color: var(--text-muted); }
+.theme-accent      { color: var(--accent); }
+.theme-accent-bg   { background-color: var(--accent); }
+.theme-border      { border-color: var(--border-light); }
+
+/* ── Scrollbar styling ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }

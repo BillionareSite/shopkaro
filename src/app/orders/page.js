@@ -141,7 +141,7 @@ export default function Orders() {
   }
 
   if (!user) return (
-    <main className="min-h-screen bg-[#f6f1ea] flex items-center justify-center">
+    <main className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
       <div className="w-8 h-8 rounded-full border-2 border-[#171313] border-t-transparent animate-spin"/>
     </main>
   )
@@ -149,26 +149,26 @@ export default function Orders() {
   const isReturn = requestModal?.type === 'return'
 
   return (
-    <main className="min-h-screen bg-[#f6f1ea] text-[#171313]">
+    <main className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)]">
       <Navbar />
       <div className="mx-auto max-w-3xl px-5 py-10 pb-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8c6048]">Account</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">Account</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">My Orders 📦</h1>
-          <p className="mt-1 text-sm text-[#7b6f66]">Track and manage all your orders</p>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">Track and manage all your orders</p>
         </motion.div>
 
         {/* Stats */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Total', value: orders.length, color: 'text-[#171313]' },
+            { label: 'Total', value: orders.length, color: 'text-[var(--text-primary)]' },
             { label: 'Pending', value: orders.filter(o => o.status === 'pending').length, color: 'text-amber-600' },
             { label: 'Confirmed', value: orders.filter(o => o.status === 'confirmed').length, color: 'text-blue-600' },
             { label: 'Delivered', value: orders.filter(o => o.status === 'delivered').length, color: 'text-green-600' }
           ].map((stat, i) => (
-            <div key={i} className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-4 text-center">
+            <div key={i} className="rounded-[1.4rem] bg-white shadow-lg shadow-[var(--shadow)]/5 p-4 text-center">
               <p className={`text-2xl font-semibold ${stat.color}`}>{stat.value}</p>
-              <p className="text-xs text-[#9b8f86] mt-1">{stat.label}</p>
+              <p className="text-xs text-[var(--text-placeholder)] mt-1">{stat.label}</p>
             </div>
           ))}
         </motion.div>
@@ -176,7 +176,7 @@ export default function Orders() {
         {/* Filter Pills */}
         <div className="flex gap-2 overflow-x-auto mb-6 pb-1">
           {['All', 'pending', 'confirmed', 'delivered', 'cancelled'].map(status => (
-            <button key={status} onClick={() => setFilter(status)} className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition flex-shrink-0 ${filter === status ? 'bg-[#171313] text-white' : 'border border-[#241a14]/15 bg-white/55 text-[#6d625a] hover:bg-white/80'}`}>
+            <button key={status} onClick={() => setFilter(status)} className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition flex-shrink-0 ${filter === status ? 'bg-[var(--btn-dark)] text-white' : 'border border-[var(--border)]/15 bg-[var(--bg-card)]/55 text-[var(--text-muted)] hover:bg-white/80'}`}>
               {status.charAt(0).toUpperCase() + status.slice(1)}
             </button>
           ))}
@@ -185,23 +185,23 @@ export default function Orders() {
         {loading ? (
           <div className="text-center py-20">
             <div className="w-8 h-8 rounded-full border-2 border-[#171313] border-t-transparent animate-spin mx-auto mb-3"/>
-            <p className="text-sm text-[#7b6f66]">Loading orders...</p>
+            <p className="text-sm text-[var(--text-muted)]">Loading orders...</p>
           </div>
         ) : filtered.length === 0 ? (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 rounded-[2rem] border border-[#241a14]/10 bg-white/55">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 rounded-[2rem] border border-[var(--border)]/10 bg-[var(--bg-card)]/55">
             <p className="text-4xl mb-4">📦</p>
             <p className="text-lg font-semibold mb-2">No orders found!</p>
-            <p className="text-sm text-[#7b6f66] mb-8">{filter === 'All' ? "You haven't placed any orders yet." : `No ${filter} orders.`}</p>
+            <p className="text-sm text-[var(--text-muted)] mb-8">{filter === 'All' ? "You haven't placed any orders yet." : `No ${filter} orders.`}</p>
             {filter === 'All' ? (
-              <a href="/products"><button className="rounded-full bg-[#171313] px-8 py-3.5 text-sm font-semibold text-white transition hover:bg-[#3a2a21]">Start Shopping</button></a>
+              <a href="/products"><button className="rounded-full bg-[var(--btn-dark)] px-8 py-3.5 text-sm font-semibold text-white transition hover:bg-[var(--btn-dark-hover)]">Start Shopping</button></a>
             ) : (
-              <button onClick={() => setFilter('All')} className="rounded-full border border-[#241a14]/15 px-6 py-2.5 text-sm font-medium text-[#6d625a] transition hover:bg-white/80">View All</button>
+              <button onClick={() => setFilter('All')} className="rounded-full border border-[var(--border)]/15 px-6 py-2.5 text-sm font-medium text-[var(--text-muted)] transition hover:bg-white/80">View All</button>
             )}
           </motion.div>
         ) : (
           <div className="space-y-4">
             {filtered.map((order, i) => (
-              <motion.div key={order.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 overflow-hidden">
+              <motion.div key={order.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="rounded-[1.4rem] bg-white shadow-lg shadow-[var(--shadow)]/5 overflow-hidden">
 
                 {/* Payment Verification Pending */}
                 {(order.paymentMethod === 'upi' || order.paymentMethod === 'bank') && !order.paymentVerified && order.status === 'pending' && (
@@ -240,20 +240,20 @@ export default function Orders() {
                 )}
 
                 {/* Order Header */}
-                <div className="p-5 border-b border-[#241a14]/10">
+                <div className="p-5 border-b border-[var(--border)]/10">
                   <div className="flex items-center justify-between flex-wrap gap-3">
                     <div className="flex items-center gap-4 flex-wrap">
-                      <div><p className="text-xs text-[#9b8f86]">Order ID</p><p className="font-mono font-bold text-sm">{order.orderId || '#' + order.id.slice(-8).toUpperCase()}</p></div>
-                      <div><p className="text-xs text-[#9b8f86]">Date</p><p className="text-sm">{new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p></div>
-                      <div><p className="text-xs text-[#9b8f86]">Payment</p><p className="text-sm">{paymentLabels[order.paymentMethod] || 'COD'}</p></div>
-                      <div><p className="text-xs text-[#9b8f86]">Total</p><p className="text-sm font-bold">₹{order.total}</p></div>
+                      <div><p className="text-xs text-[var(--text-placeholder)]">Order ID</p><p className="font-mono font-bold text-sm">{order.orderId || '#' + order.id.slice(-8).toUpperCase()}</p></div>
+                      <div><p className="text-xs text-[var(--text-placeholder)]">Date</p><p className="text-sm">{new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p></div>
+                      <div><p className="text-xs text-[var(--text-placeholder)]">Payment</p><p className="text-sm">{paymentLabels[order.paymentMethod] || 'COD'}</p></div>
+                      <div><p className="text-xs text-[var(--text-placeholder)]">Total</p><p className="text-sm font-bold">₹{order.total}</p></div>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${statusColor(order.status)}`}>
                         {order.status?.charAt(0).toUpperCase() + order.status?.slice(1)}
                       </span>
-                      <button onClick={() => setViewBill(order)} className="text-xs px-3 py-1.5 rounded-full border border-[#241a14]/15 text-[#6d625a] hover:bg-[#f6f1ea] transition">🧾 Bill</button>
-                      <button onClick={() => printBill(order)} className="text-xs px-3 py-1.5 rounded-full border border-[#241a14]/15 text-[#6d625a] hover:bg-[#f6f1ea] transition">🖨️</button>
+                      <button onClick={() => setViewBill(order)} className="text-xs px-3 py-1.5 rounded-full border border-[var(--border)]/15 text-[var(--text-muted)] hover:bg-[var(--bg)] transition">🧾 Bill</button>
+                      <button onClick={() => printBill(order)} className="text-xs px-3 py-1.5 rounded-full border border-[var(--border)]/15 text-[var(--text-muted)] hover:bg-[var(--bg)] transition">🖨️</button>
 
                       {/* Cancel button — only for non-delivered orders */}
                       {canCancel(order) && (
@@ -282,12 +282,12 @@ export default function Orders() {
                 <div className="p-5 space-y-3">
                   {order.items?.map((item, j) => (
                     <div key={j} className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-[#eadfd4]">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-[var(--bg-muted)]">
                         {item.images?.[0] ? <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover"/> : <div className="grid h-full place-items-center text-lg">🛍️</div>}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold truncate">{item.name}</p>
-                        <p className="text-xs text-[#9b8f86]">Qty: {item.quantity} × ₹{item.price}</p>
+                        <p className="text-xs text-[var(--text-placeholder)]">Qty: {item.quantity} × ₹{item.price}</p>
                       </div>
                       <p className="text-sm font-semibold flex-shrink-0">₹{item.price * item.quantity}</p>
                     </div>
@@ -296,15 +296,15 @@ export default function Orders() {
 
                 {/* Delivery + Timeline */}
                 <div className="px-5 pb-5">
-                  <div className="rounded-2xl bg-[#f6f1ea] border border-[#241a14]/10 p-4 flex items-start justify-between gap-4 mb-4">
+                  <div className="rounded-2xl bg-[var(--bg)] border border-[var(--border)]/10 p-4 flex items-start justify-between gap-4 mb-4">
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-[#9b8f86] mb-1">📍 Delivery Address</p>
-                      <p className="text-sm text-[#6f6258]">{order.address}, {order.pincode}</p>
-                      <p className="text-xs text-[#9b8f86] mt-1">📱 {order.phone}</p>
-                      {order.whatsapp && <p className="text-xs text-[#9b8f86] mt-1">💬 {order.whatsapp}</p>}
+                      <p className="text-xs text-[var(--text-placeholder)] mb-1">📍 Delivery Address</p>
+                      <p className="text-sm text-[var(--text-muted)]">{order.address}, {order.pincode}</p>
+                      <p className="text-xs text-[var(--text-placeholder)] mt-1">📱 {order.phone}</p>
+                      {order.whatsapp && <p className="text-xs text-[var(--text-placeholder)] mt-1">💬 {order.whatsapp}</p>}
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="text-xs text-[#9b8f86] mb-1">Amount Paid</p>
+                      <p className="text-xs text-[var(--text-placeholder)] mb-1">Amount Paid</p>
                       <p className="text-lg font-semibold">₹{order.total}</p>
                       {order.discount > 0 && <p className="text-xs text-green-600">Saved ₹{order.discount}</p>}
                     </div>
@@ -314,9 +314,9 @@ export default function Orders() {
                     <div className="flex items-center gap-1">
                       {['pending', 'confirmed', 'delivered'].map((s, index) => (
                         <div key={s} className="flex items-center gap-1 flex-1">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${['pending', 'confirmed', 'delivered'].indexOf(order.status) >= index ? 'bg-[#171313] text-white' : 'bg-[#f6f1ea] border border-[#241a14]/15 text-[#9b8f86]'}`}>{index + 1}</div>
-                          <p className={`text-xs flex-1 ${['pending', 'confirmed', 'delivered'].indexOf(order.status) >= index ? 'text-[#171313] font-medium' : 'text-[#9b8f86]'}`}>{s.charAt(0).toUpperCase() + s.slice(1)}</p>
-                          {index < 2 && <div className={`h-0.5 flex-1 ${['pending', 'confirmed', 'delivered'].indexOf(order.status) > index ? 'bg-[#171313]' : 'bg-[#241a14]/10'}`}/>}
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${['pending', 'confirmed', 'delivered'].indexOf(order.status) >= index ? 'bg-[var(--btn-dark)] text-white' : 'bg-[var(--bg)] border border-[var(--border)]/15 text-[var(--text-placeholder)]'}`}>{index + 1}</div>
+                          <p className={`text-xs flex-1 ${['pending', 'confirmed', 'delivered'].indexOf(order.status) >= index ? 'text-[var(--text-primary)] font-medium' : 'text-[var(--text-placeholder)]'}`}>{s.charAt(0).toUpperCase() + s.slice(1)}</p>
+                          {index < 2 && <div className={`h-0.5 flex-1 ${['pending', 'confirmed', 'delivered'].indexOf(order.status) > index ? 'bg-[var(--btn-dark)]' : 'bg-[#241a14]/10'}`}/>}
                         </div>
                       ))}
                     </div>
@@ -353,7 +353,7 @@ export default function Orders() {
 
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="text-sm text-[#7b6f66] mb-2 block font-medium">
+                  <label className="text-sm text-[var(--text-muted)] mb-2 block font-medium">
                     {isReturn ? 'Why do you want to return?' : 'Why do you want to cancel?'} *
                   </label>
                   <div className="space-y-2">
@@ -361,7 +361,7 @@ export default function Orders() {
                       <button
                         key={reason}
                         onClick={() => setRequestForm(prev => ({ ...prev, reason }))}
-                        className={`w-full text-left px-4 py-3 rounded-2xl border text-sm transition ${requestForm.reason === reason ? 'border-[#171313] bg-[#171313] text-white' : 'border-[#241a14]/15 bg-[#f6f1ea] text-[#171313] hover:border-[#241a14]/30'}`}
+                        className={`w-full text-left px-4 py-3 rounded-2xl border text-sm transition ${requestForm.reason === reason ? 'border-[#171313] bg-[var(--btn-dark)] text-white' : 'border-[var(--border)]/15 bg-[var(--bg)] text-[var(--text-primary)] hover:border-[var(--border)]/30'}`}
                       >
                         {reason}
                       </button>
@@ -370,15 +370,15 @@ export default function Orders() {
                 </div>
 
                 <div>
-                  <label className="text-sm text-[#7b6f66] mb-1 block">
-                    Additional details <span className="text-[#9b8f86]">(optional)</span>
+                  <label className="text-sm text-[var(--text-muted)] mb-1 block">
+                    Additional details <span className="text-[var(--text-placeholder)]">(optional)</span>
                   </label>
                   <textarea
                     placeholder={isReturn ? 'Describe the issue with your order...' : 'Tell us more about why you want to cancel...'}
                     value={requestForm.details}
                     onChange={(e) => setRequestForm(prev => ({ ...prev, details: e.target.value }))}
                     rows={3}
-                    className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm text-[#171313] placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition resize-none"
+                    className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm text-[var(--text-primary)] placeholder-[var(--text-placeholder)] focus:outline-none focus:border-[var(--border)]/30 transition resize-none"
                   />
                 </div>
 
@@ -391,7 +391,7 @@ export default function Orders() {
                 <div className="flex gap-3 pt-2">
                   <button
                     onClick={() => setRequestModal(null)}
-                    className="flex-1 rounded-full border border-[#241a14]/15 py-3 text-sm font-semibold text-[#6d625a] transition hover:bg-[#f6f1ea]"
+                    className="flex-1 rounded-full border border-[var(--border)]/15 py-3 text-sm font-semibold text-[var(--text-muted)] transition hover:bg-[var(--bg)]"
                   >
                     {isReturn ? 'Keep Order' : 'Keep Order'}
                   </button>
@@ -416,7 +416,7 @@ export default function Orders() {
         {viewBill && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setViewBill(null) }}>
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-[1.4rem] w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl">
-              <div className="bg-[#171313] rounded-t-[1.4rem] p-6 text-center">
+              <div className="bg-[var(--btn-dark)] rounded-t-[1.4rem] p-6 text-center">
                 <p className="text-white/50 text-xs uppercase tracking-widest mb-1">Tax Invoice</p>
                 <h2 className="text-white text-2xl font-bold">{config.brandName}</h2>
                 <p className="text-white/50 text-xs mt-1">{config.tagline}</p>
@@ -429,47 +429,47 @@ export default function Orders() {
                     { label: 'Payment', value: paymentLabels[viewBill.paymentMethod] || 'N/A' },
                     { label: 'Status', value: viewBill.status?.charAt(0).toUpperCase() + viewBill.status?.slice(1) }
                   ].map((item, i) => (
-                    <div key={i} className="rounded-2xl bg-[#f6f1ea] border border-[#241a14]/10 px-4 py-3">
-                      <p className="text-xs text-[#9b8f86] mb-1">{item.label}</p>
+                    <div key={i} className="rounded-2xl bg-[var(--bg)] border border-[var(--border)]/10 px-4 py-3">
+                      <p className="text-xs text-[var(--text-placeholder)] mb-1">{item.label}</p>
                       <p className="text-sm font-semibold">{item.value}</p>
                     </div>
                   ))}
                 </div>
-                <div className="rounded-2xl bg-[#f6f1ea] border border-[#241a14]/10 p-4">
-                  <p className="text-xs text-[#9b8f86] mb-2 font-semibold uppercase tracking-wider">Billed To</p>
+                <div className="rounded-2xl bg-[var(--bg)] border border-[var(--border)]/10 p-4">
+                  <p className="text-xs text-[var(--text-placeholder)] mb-2 font-semibold uppercase tracking-wider">Billed To</p>
                   <p className="font-semibold">{viewBill.name}</p>
-                  <p className="text-sm text-[#7b6f66] mt-1">{viewBill.email}</p>
-                  <p className="text-sm text-[#7b6f66]">📱 {viewBill.phone}</p>
-                  {viewBill.whatsapp && <p className="text-sm text-[#7b6f66]">💬 {viewBill.whatsapp}</p>}
-                  <p className="text-sm text-[#7b6f66]">📍 {viewBill.address}, {viewBill.pincode}</p>
+                  <p className="text-sm text-[var(--text-muted)] mt-1">{viewBill.email}</p>
+                  <p className="text-sm text-[var(--text-muted)]">📱 {viewBill.phone}</p>
+                  {viewBill.whatsapp && <p className="text-sm text-[var(--text-muted)]">💬 {viewBill.whatsapp}</p>}
+                  <p className="text-sm text-[var(--text-muted)]">📍 {viewBill.address}, {viewBill.pincode}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#9b8f86] mb-3 font-semibold uppercase tracking-wider">Items Ordered</p>
+                  <p className="text-xs text-[var(--text-placeholder)] mb-3 font-semibold uppercase tracking-wider">Items Ordered</p>
                   <div className="space-y-2">
                     {(viewBill.items || []).map((item, i) => (
-                      <div key={i} className="flex items-center gap-3 bg-[#f6f1ea] rounded-2xl p-3">
-                        <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-[#eadfd4]">
+                      <div key={i} className="flex items-center gap-3 bg-[var(--bg)] rounded-2xl p-3">
+                        <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-[var(--bg-muted)]">
                           {item.images?.[0] ? <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover"/> : <div className="grid h-full place-items-center">🛍️</div>}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold truncate">{item.name}</p>
-                          <p className="text-xs text-[#9b8f86]">Qty: {item.quantity} × ₹{item.price}</p>
+                          <p className="text-xs text-[var(--text-placeholder)]">Qty: {item.quantity} × ₹{item.price}</p>
                         </div>
                         <p className="text-sm font-bold flex-shrink-0">₹{item.price * item.quantity}</p>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="rounded-2xl bg-[#f6f1ea] border border-[#241a14]/10 p-4 space-y-2">
-                  <div className="flex justify-between text-sm"><span className="text-[#7b6f66]">Subtotal</span><span>₹{viewBill.total + (viewBill.discount || 0)}</span></div>
+                <div className="rounded-2xl bg-[var(--bg)] border border-[var(--border)]/10 p-4 space-y-2">
+                  <div className="flex justify-between text-sm"><span className="text-[var(--text-muted)]">Subtotal</span><span>₹{viewBill.total + (viewBill.discount || 0)}</span></div>
                   {viewBill.discount > 0 && <div className="flex justify-between text-sm"><span className="text-green-600">Coupon ({viewBill.couponCode})</span><span className="text-green-600">−₹{viewBill.discount}</span></div>}
-                  <div className="flex justify-between text-sm"><span className="text-[#7b6f66]">Delivery</span><span className="text-green-600">FREE</span></div>
-                  <div className="flex justify-between font-bold text-lg pt-2 border-t border-[#241a14]/10"><span>Grand Total</span><span>₹{viewBill.total}</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-[var(--text-muted)]">Delivery</span><span className="text-green-600">FREE</span></div>
+                  <div className="flex justify-between font-bold text-lg pt-2 border-t border-[var(--border)]/10"><span>Grand Total</span><span>₹{viewBill.total}</span></div>
                 </div>
-                <p className="text-center text-xs text-[#9b8f86]">Thank you for shopping with {config.brandName}!</p>
+                <p className="text-center text-xs text-[var(--text-placeholder)]">Thank you for shopping with {config.brandName}!</p>
                 <div className="flex gap-3">
-                  <button onClick={() => setViewBill(null)} className="flex-1 rounded-full border border-[#241a14]/15 py-3 text-sm font-semibold text-[#6d625a] transition hover:bg-[#f6f1ea]">Close</button>
-                  <button onClick={() => printBill(viewBill)} className="flex-1 rounded-full bg-[#171313] py-3 text-sm font-semibold text-white transition hover:bg-[#3a2a21]">🖨️ Print</button>
+                  <button onClick={() => setViewBill(null)} className="flex-1 rounded-full border border-[var(--border)]/15 py-3 text-sm font-semibold text-[var(--text-muted)] transition hover:bg-[var(--bg)]">Close</button>
+                  <button onClick={() => printBill(viewBill)} className="flex-1 rounded-full bg-[var(--btn-dark)] py-3 text-sm font-semibold text-white transition hover:bg-[var(--btn-dark-hover)]">🖨️ Print</button>
                 </div>
               </div>
             </motion.div>
@@ -477,8 +477,8 @@ export default function Orders() {
         )}
       </AnimatePresence>
 
-      <footer className="border-t border-[#241a14]/10 px-5 py-10">
-        <p className="text-center text-sm text-[#9b8f86]">{config.copyright}</p>
+      <footer className="border-t border-[var(--border)]/10 px-5 py-10">
+        <p className="text-center text-sm text-[var(--text-placeholder)]">{config.copyright}</p>
       </footer>
     </main>
   )

@@ -29,13 +29,13 @@ export default function AdminLogin() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f6f1ea] text-[#171313] flex flex-col">
-      <header className="border-b border-[#241a14]/10 bg-[#f6f1ea]/85 backdrop-blur-xl px-5 py-4 flex items-center justify-between">
+    <main className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)] flex flex-col">
+      <header className="border-b border-[var(--border)]/10 bg-[var(--bg)]/85 backdrop-blur-xl px-5 py-4 flex items-center justify-between">
         <a href="/" className="flex items-center gap-3">
-          <div className="grid h-9 w-9 place-items-center rounded-full bg-[#171313] text-xs font-semibold text-white">{config.shortCode}</div>
+          <div className="grid h-9 w-9 place-items-center rounded-full bg-[var(--btn-dark)] text-xs font-semibold text-white">{config.shortCode}</div>
           <span className="text-lg font-semibold">{config.brandName}</span>
         </a>
-        <span className="text-sm text-[#7b6f66]">Admin Access</span>
+        <span className="text-sm text-[var(--text-muted)]">Admin Access</span>
       </header>
 
       <div className="flex-1 flex items-center justify-center px-4 py-12">
@@ -43,15 +43,15 @@ export default function AdminLogin() {
           <div className="text-center mb-8">
             <p className="text-4xl mb-4">🔐</p>
             <h2 className="text-2xl font-semibold mb-2">Admin Access</h2>
-            <p className="text-sm text-[#7b6f66]">Enter the admin password to continue</p>
+            <p className="text-sm text-[var(--text-muted)]">Enter the admin password to continue</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-sm text-[#7b6f66] mb-1 block">Admin Password</label>
-              <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm placeholder-[#9b8f86] focus:outline-none focus:border-[#171313]/30 transition" required/>
+              <label className="text-sm text-[var(--text-muted)] mb-1 block">Admin Password</label>
+              <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-2xl border border-[var(--border)]/15 bg-[var(--bg)] px-4 py-3 text-sm placeholder-[var(--text-placeholder)] focus:outline-none focus:border-[var(--border)]/30 transition" required/>
             </div>
-            <motion.button type="submit" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} disabled={loading} className="w-full rounded-full bg-[#171313] py-3.5 text-sm font-semibold text-white transition hover:bg-[#3a2a21]">
+            <motion.button type="submit" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} disabled={loading} className="w-full rounded-full bg-[var(--btn-dark)] py-3.5 text-sm font-semibold text-white transition hover:bg-[var(--btn-dark-hover)]">
               {loading ? 'Verifying...' : 'Enter Admin Panel'}
             </motion.button>
           </form>
@@ -62,8 +62,8 @@ export default function AdminLogin() {
             </motion.p>
           )}
 
-          <p className="text-center text-sm text-[#9b8f86] mt-6">
-            <a href="/" className="hover:text-[#171313] transition">← Back to Store</a>
+          <p className="text-center text-sm text-[var(--text-placeholder)] mt-6">
+            <a href="/" className="hover:text-[var(--text-primary)] transition">← Back to Store</a>
           </p>
         </motion.div>
       </div>
