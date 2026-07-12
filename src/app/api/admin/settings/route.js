@@ -9,7 +9,10 @@ export async function GET() {
         data: {
           paymentMethods: { cod: true, upi: false, bank: false, card: false },
           upiId: '',
-          bankDetails: ''
+          bankDetails: '',
+          deliveryCharge: 0,
+          freeDeliveryMin: 500,
+          minOrderValue: 0
         }
       })
     }
@@ -25,23 +28,19 @@ export async function PATCH(req) {
     const body = await req.json()
     let settings = await prisma.storeSettings.findFirst()
 
+    const data = {
+      paymentMethods: body.paymentMethods,
+      upiId: body.upiId || '',
+      bankDetails: body.bankDetails || '',
+      deliveryCharge: parseFloat(body.deliveryCharge) || 0,
+      freeDeliveryMin: parseFloat(body.freeDeliveryMin) ?? 500,
+      minOrderValue: parseFloat(body.minOrderValue) || 0
+    }
+
     if (!settings) {
-      settings = await prisma.storeSettings.create({
-        data: {
-          paymentMethods: body.paymentMethods || { cod: true, upi: false, bank: false, card: false },
-          upiId: body.upiId || '',
-          bankDetails: body.bankDetails || ''
-        }
-      })
+      settings = await prisma.storeSettings.create({ data })
     } else {
-      settings = await prisma.storeSettings.update({
-        where: { id: settings.id },
-        data: {
-          paymentMethods: body.paymentMethods,
-          upiId: body.upiId || '',
-          bankDetails: body.bankDetails || ''
-        }
-      })
+      settings = await prisma.storeSettings.update({ where: { id: settings.id }, data })
     }
 
     return NextResponse.json({ message: 'Settings saved!', settings }, { status: 200 })

@@ -38,7 +38,7 @@ export default function AdminDashboard() {
   const [editPreownedForm, setEditPreownedForm] = useState(null)
   const [editPreownedPincodeInput, setEditPreownedPincodeInput] = useState('')
   const [cancellations, setCancellations] = useState([])
-  const [settings, setSettings] = useState({ paymentMethods: { cod: true, upi: false, bank: false, card: false }, upiId: '', bankDetails: '' })
+  const [settings, setSettings] = useState({ paymentMethods: { cod: true, upi: false, bank: false, card: false }, upiId: '', bankDetails: '', deliveryCharge: 0, freeDeliveryMin: 500, minOrderValue: 0 })
   const [loading, setLoading] = useState({})
   const [search, setSearch] = useState('')
   const [userSearch, setUserSearch] = useState('')
@@ -115,10 +115,17 @@ export default function AdminDashboard() {
   const fetchCancellations = () => { fetch('/api/admin/cancellations').then(r => r.json()).then(d => setCancellations(d.requests || [])) }
   const fetchStats = () => { fetch('/api/admin/stats').then(r => r.json()).then(d => setStats(d)) }
   const fetchSettings = () => {
-    fetch('/api/admin/settings').then(r => r.json()).then(d => {
-      if (d.settings) setSettings({ paymentMethods: d.settings.paymentMethods || { cod: true, upi: false, bank: false, card: false }, upiId: d.settings.upiId || '', bankDetails: d.settings.bankDetails || '' })
+  fetch('/api/admin/settings').then(r => r.json()).then(d => {
+    if (d.settings) setSettings({
+      paymentMethods: d.settings.paymentMethods || { cod: true, upi: false, bank: false, card: false },
+      upiId: d.settings.upiId || '',
+      bankDetails: d.settings.bankDetails || '',
+      deliveryCharge: d.settings.deliveryCharge ?? 0,
+      freeDeliveryMin: d.settings.freeDeliveryMin ?? 500,
+      minOrderValue: d.settings.minOrderValue ?? 0
     })
-  }
+  })
+}
   const fetchCategories = () => { fetch('/api/admin/categories').then(r => r.json()).then(d => setCategories(d.categories || [])) }
   const fetchUsers = () => { fetch('/api/admin/users').then(r => r.json()).then(d => setUsers(d.users || [])) }
   const fetchPreownedProducts = () => { fetch('/api/preowned/products').then(r => r.json()).then(d => setPreownedProducts(d.products || [])) }
@@ -1142,6 +1149,8 @@ export default function AdminDashboard() {
           {/* SETTINGS */}
           {activeTab === 'settings' && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl space-y-6">
+
+              {/* Payment Methods */}
               <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6">
                 <h3 className="text-lg font-semibold mb-2">💳 Payment Methods</h3>
                 <p className="text-sm text-[#7b6f66] mb-6">Enable or disable payment options for customers</p>
@@ -1155,29 +1164,109 @@ export default function AdminDashboard() {
                     <div key={option.id} className={`flex items-center justify-between p-4 rounded-2xl border-2 transition ${settings.paymentMethods[option.id] ? 'border-[#171313] bg-[#f6f1ea]' : 'border-[#241a14]/10 bg-[#f6f1ea]/50'}`}>
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">{option.icon}</span>
-                        <div><p className="font-semibold text-sm">{option.label}</p><p className="text-xs text-[#9b8f86] mt-0.5">{option.desc}</p></div>
+                        <div>
+                          <p className="font-semibold text-sm">{option.label}</p>
+                          <p className="text-xs text-[#9b8f86] mt-0.5">{option.desc}</p>
+                        </div>
                       </div>
-                      <button onClick={() => setSettings(prev => ({ ...prev, paymentMethods: { ...prev.paymentMethods, [option.id]: !prev.paymentMethods[option.id] } }))} className={`w-12 h-6 rounded-full transition-colors duration-200 relative flex-shrink-0 ${settings.paymentMethods[option.id] ? 'bg-[#171313]' : 'bg-[#241a14]/20'}`}>
+                      <button
+                        onClick={() => setSettings(prev => ({ ...prev, paymentMethods: { ...prev.paymentMethods, [option.id]: !prev.paymentMethods[option.id] } }))}
+                        className={`w-12 h-6 rounded-full transition-colors duration-200 relative flex-shrink-0 ${settings.paymentMethods[option.id] ? 'bg-[#171313]' : 'bg-[#241a14]/20'}`}
+                      >
                         <span className={`absolute top-1 w-4 h-4 rounded-full transition-all duration-200 ${settings.paymentMethods[option.id] ? 'left-7 bg-white' : 'left-1 bg-[#9b8f86]'}`}/>
                       </button>
                     </div>
                   ))}
                 </div>
               </div>
+
+              {/* UPI Details */}
               {settings.paymentMethods.upi && (
                 <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6">
                   <h3 className="text-lg font-semibold mb-4">📱 UPI Details</h3>
-                  <div><label className="text-sm text-[#7b6f66] mb-1 block">Your UPI ID</label><input type="text" placeholder="yourname@paytm" value={settings.upiId} onChange={(e) => setSettings(prev => ({ ...prev, upiId: e.target.value }))} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none transition"/></div>
+                  <div>
+                    <label className="text-sm text-[#7b6f66] mb-1 block">Your UPI ID</label>
+                    <input type="text" placeholder="yourname@paytm" value={settings.upiId} onChange={(e) => setSettings(prev => ({ ...prev, upiId: e.target.value }))} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none transition"/>
+                  </div>
                 </div>
               )}
+
+              {/* Bank Details */}
               {settings.paymentMethods.bank && (
                 <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6">
                   <h3 className="text-lg font-semibold mb-4">🏦 Bank Details</h3>
-                  <div><label className="text-sm text-[#7b6f66] mb-1 block">Bank Details</label><textarea placeholder={`Bank: HDFC Bank\nAccount Name: Your Name\nAccount Number: XXXXXXXXXXXX\nIFSC: HDFC0001234`} value={settings.bankDetails} onChange={(e) => setSettings(prev => ({ ...prev, bankDetails: e.target.value }))} rows={5} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none transition resize-none font-mono"/></div>
+                  <div>
+                    <label className="text-sm text-[#7b6f66] mb-1 block">Bank Details</label>
+                    <textarea placeholder={`Bank: HDFC Bank\nAccount Name: Your Name\nAccount Number: XXXXXXXXXXXX\nIFSC: HDFC0001234`} value={settings.bankDetails} onChange={(e) => setSettings(prev => ({ ...prev, bankDetails: e.target.value }))} rows={5} className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none transition resize-none font-mono"/>
+                  </div>
                 </div>
               )}
-              {settingsMessage && <div className={`rounded-2xl p-4 text-center text-sm font-medium ${settingsMessage.includes('!') ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-600'}`}>{settingsMessage}</div>}
-              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSaveSettings} disabled={savingSettings} className="w-full rounded-full bg-[#171313] py-4 font-semibold text-sm text-white transition hover:bg-[#3a2a21] disabled:opacity-50">{savingSettings ? 'Saving...' : 'Save Settings'}</motion.button>
+
+              {/* Delivery Settings */}
+              <div className="rounded-[1.4rem] bg-white shadow-lg shadow-[#3d2619]/5 p-6">
+                <h3 className="text-lg font-semibold mb-2">🚚 Delivery Settings</h3>
+                <p className="text-sm text-[#7b6f66] mb-6">Configure delivery charges and minimum order values</p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm text-[#7b6f66] mb-1 block">Delivery Charge (₹)</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={settings.deliveryCharge ?? 0}
+                      onChange={(e) => setSettings(prev => ({ ...prev, deliveryCharge: e.target.value }))}
+                      className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none transition"
+                    />
+                    <p className="text-xs text-[#9b8f86] mt-1">Set to 0 for always free delivery</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-[#7b6f66] mb-1 block">Free Delivery Above (₹)</label>
+                    <input
+                      type="number"
+                      placeholder="500"
+                      value={settings.freeDeliveryMin ?? 500}
+                      onChange={(e) => setSettings(prev => ({ ...prev, freeDeliveryMin: e.target.value }))}
+                      className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none transition"
+                    />
+                    <p className="text-xs text-[#9b8f86] mt-1">Orders above this amount get free delivery</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-[#7b6f66] mb-1 block">Minimum Order Value (₹)</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={settings.minOrderValue ?? 0}
+                      onChange={(e) => setSettings(prev => ({ ...prev, minOrderValue: e.target.value }))}
+                      className="w-full rounded-2xl border border-[#241a14]/15 bg-[#f6f1ea] px-4 py-3 text-sm focus:outline-none transition"
+                    />
+                    <p className="text-xs text-[#9b8f86] mt-1">Users cannot place orders below this amount. Set to 0 to disable.</p>
+                  </div>
+                  <div className="rounded-2xl bg-blue-50 border border-blue-200 p-4">
+                    <p className="text-xs font-semibold text-blue-700 mb-1">📦 Current Setup Preview</p>
+                    <p className="text-xs text-blue-600">
+                      Delivery charge: ₹{settings.deliveryCharge || 0} · Free above: ₹{settings.freeDeliveryMin || 500} · Min order: ₹{settings.minOrderValue || 0}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Save message */}
+              {settingsMessage && (
+                <div className={`rounded-2xl p-4 text-center text-sm font-medium ${settingsMessage.includes('!') ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-600'}`}>
+                  {settingsMessage}
+                </div>
+              )}
+
+              {/* Save button — standalone, nothing inside it */}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleSaveSettings}
+                disabled={savingSettings}
+                className="w-full rounded-full bg-[#171313] py-4 font-semibold text-sm text-white transition hover:bg-[#3a2a21] disabled:opacity-50"
+              >
+                {savingSettings ? 'Saving...' : 'Save Settings'}
+              </motion.button>
+
             </motion.div>
           )}
 

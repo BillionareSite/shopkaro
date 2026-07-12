@@ -134,11 +134,14 @@ model AdminUser {
 }
 
 model StoreSettings {
-  id             String   @id @default(cuid())
-  paymentMethods Json     @default("{\"cod\":true,\"upi\":false,\"bank\":false,\"card\":false}")
-  upiId          String   @default("")
-  bankDetails    String   @default("")
-  updatedAt      DateTime @updatedAt
+  id              String   @id @default(cuid())
+  paymentMethods  Json     @default("{\"cod\":true,\"upi\":false,\"bank\":false,\"card\":false}")
+  upiId           String   @default("")
+  bankDetails     String   @default("")
+  deliveryCharge  Float    @default(0)
+  freeDeliveryMin Float    @default(500)
+  minOrderValue   Float    @default(0)
+  updatedAt       DateTime @updatedAt
 }
 
 model Category {
