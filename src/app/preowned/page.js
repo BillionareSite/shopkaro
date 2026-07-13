@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -20,15 +20,17 @@ export default function PreownedHome() {
   const [addedMap, setAddedMap] = useState({})
   const [cartCount, setCartCount] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
     fetch('/api/preowned/products')
-      .then((r) => r.json())
-      .then((d) => {
+      .then(r => r.json())
+      .then(d => {
         const all = d.products || []
         setProducts(all)
-        setFeatured(all.filter((p) => p.featured))
+        setFeatured(all.filter(p => p.featured))
       })
 
     const updateCart = () => {
@@ -37,13 +39,25 @@ export default function PreownedHome() {
     }
     updateCart()
     window.addEventListener('storage', updateCart)
-    return () => window.removeEventListener('storage', updateCart)
+
+    // Check if user is logged in + update on change
+    const checkAuth = () => {
+      const token = localStorage.getItem('token')
+      setIsLoggedIn(!!token)
+    }
+    checkAuth()
+    window.addEventListener('storage', checkAuth)
+
+    return () => {
+      window.removeEventListener('storage', updateCart)
+      window.removeEventListener('storage', checkAuth)
+    }
   }, [])
 
   useEffect(() => {
     if (featured.length <= 1) return
     const timer = setInterval(() => {
-      setActiveSlide((current) => (current + 1) % featured.length)
+      setActiveSlide(c => (c + 1) % featured.length)
     }, 3500)
     return () => clearInterval(timer)
   }, [featured.length])
@@ -51,40 +65,52 @@ export default function PreownedHome() {
   const currentFeatured = useMemo(() => featured[activeSlide], [featured, activeSlide])
 
   const categories = useMemo(() => {
-    const productCategories = [...new Set(products.map((p) => p.category).filter(Boolean))]
+    const productCategories = [...new Set(products.map(p => p.category).filter(Boolean))]
     return productCategories.length > 0 ? ['All', ...productCategories.slice(0, 7)] : ['All']
   }, [products])
 
   const hotDrops = featured.length > 0 ? featured : products
 
-  const nextSlide = () => { if (!featured.length) return; setActiveSlide((c) => (c + 1) % featured.length) }
-  const prevSlide = () => { if (!featured.length) return; setActiveSlide((c) => c === 0 ? featured.length - 1 : c - 1) }
-  const handleDragEnd = (_, info) => { if (info.offset.x < -70) nextSlide(); if (info.offset.x > 70) prevSlide() }
+  const nextSlide = useCallback(() => {
+    if (!featured.length) return
+    setActiveSlide(c => (c + 1) % featured.length)
+  }, [featured.length])
 
-  // ── Working search handler ──
+  const prevSlide = useCallback(() => {
+    if (!featured.length) return
+    setActiveSlide(c => c === 0 ? featured.length - 1 : c - 1)
+  }, [featured.length])
+
+  const handleDragEnd = useCallback((_, info) => {
+    if (info.offset.x < -70) nextSlide()
+    if (info.offset.x > 70) prevSlide()
+  }, [nextSlide, prevSlide])
+
   const handleSearch = (e) => {
     e.preventDefault()
     if (!searchQuery.trim()) return
     router.push(`/preowned/products?search=${encodeURIComponent(searchQuery.trim())}`)
+    setMobileSearchOpen(false)
+    setMobileMenuOpen(false)
   }
 
-  const handleAddToCart = (e, product) => {
+  const handleAddToCart = useCallback((e, product) => {
     e.preventDefault()
     e.stopPropagation()
     if (product.stock === 0) return
     const cart = JSON.parse(localStorage.getItem('cart') || '[]')
-    const existing = cart.find((item) => item.id === product.id && item.preowned)
+    const existing = cart.find(item => item.id === product.id && item.preowned)
     if (existing) { existing.quantity += 1 } else { cart.push({ ...product, quantity: 1, preowned: true }) }
     localStorage.setItem('cart', JSON.stringify(cart))
     window.dispatchEvent(new Event('storage'))
     setCartCount(cart.reduce((sum, item) => sum + item.quantity, 0))
-    setAddedMap((prev) => ({ ...prev, [product.id]: true }))
-    setTimeout(() => setAddedMap((prev) => ({ ...prev, [product.id]: false })), 1400)
-  }
+    setAddedMap(prev => ({ ...prev, [product.id]: true }))
+    setTimeout(() => setAddedMap(prev => ({ ...prev, [product.id]: false })), 1400)
+  }, [])
 
   const formatPrice = (price) => `₹${price}`
 
-  const ProductCard = ({ product, index }) => {
+  const ProductCard = useCallback(({ product, index }) => {
     const condition = CONDITIONS[product.condition] || CONDITIONS.good
     return (
       <motion.div
@@ -93,13 +119,10 @@ export default function PreownedHome() {
         viewport={{ once: true, margin: '-60px' }}
         transition={{ duration: 0.35, delay: Math.min(index * 0.04, 0.2) }}
       >
-        <Link
-          href={`/preowned/products/${product.id}`}
-          className="group block h-full overflow-hidden rounded-[1.25rem] border border-black/10 bg-white/75 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
-        >
+        <Link href={`/preowned/products/${product.id}`} className="group block h-full overflow-hidden rounded-[1.25rem] border border-black/10 bg-white/75 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
           <div className="relative aspect-[4/3] overflow-hidden bg-[#f2eadf]">
             {product.images?.[0] ? (
-              <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105"/>
+              <img src={product.images[0]} alt={product.name} loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-700 group-hover:scale-105"/>
             ) : (
               <div className="grid h-full place-items-center text-sm text-black/40">No image</div>
             )}
@@ -137,32 +160,32 @@ export default function PreownedHome() {
         </Link>
       </motion.div>
     )
-  }
+  }, [addedMap, handleAddToCart])
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#fffaf0] text-black">
 
-      {/* Navbar */}
-      <nav className="px-3 pt-3">
+      {/* ── NAVBAR ── */}
+      <nav className="px-3 pt-3 relative z-50">
         <div className="mx-auto flex max-w-7xl items-center justify-between rounded-[1.75rem] bg-[#101010] px-5 py-4 text-white shadow-xl shadow-black/10">
-          
+
           {/* Logo */}
           <Link href="/preowned" className="flex items-center gap-3 flex-shrink-0">
             <div>
-              <p className="text-3xl font-black leading-none tracking-tight">
+              <p className="text-2xl font-black leading-none tracking-tight sm:text-3xl">
                 Drop<span className="text-[#ccff2f]">EZ</span>
               </p>
               <p className="-mt-0.5 w-fit rounded-full bg-[#f75ca8] px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-black">
                 Preowned
               </p>
             </div>
-            <span className="hidden text-3xl text-[#ccff2f] sm:block">♻️</span>
+            <span className="hidden text-2xl sm:block">♻️</span>
           </Link>
 
-          {/* ── WORKING SEARCH BAR (desktop) ── */}
+          {/* Desktop search */}
           <form onSubmit={handleSearch} className="hidden md:flex md:mx-8 flex-1 min-w-[240px] max-w-sm">
-            <div className="flex w-full items-center rounded-full border border-white/10 bg-white/10 px-4 py-2.5 text-sm">
-              <span className="mr-2 text-white/50">🔍</span>
+            <div className="flex w-full items-center rounded-full border border-white/10 bg-white/10 px-4 py-2.5">
+              <span className="mr-2 text-white/50 text-sm">🔍</span>
               <input
                 type="text"
                 placeholder="Search for heat..."
@@ -171,55 +194,76 @@ export default function PreownedHome() {
                 className="flex-1 bg-transparent text-white placeholder-white/40 focus:outline-none text-sm"
               />
               {searchQuery && (
-                <button type="submit" className="ml-2 rounded-full bg-[#ccff2f] px-3 py-1 text-xs font-black text-black">
-                  Go
-                </button>
+                <button type="submit" className="ml-2 rounded-full bg-[#ccff2f] px-3 py-1 text-xs font-black text-black">Go</button>
               )}
             </div>
           </form>
 
-          {/* Desktop Nav Links */}
-          <div className="hidden items-center gap-7 text-sm font-bold lg:flex">
+          {/* Desktop nav links */}
+          <div className="hidden items-center gap-5 text-sm font-bold lg:flex">
             <Link href="/preowned/products" className="hover:text-[#ccff2f]">Shop</Link>
             <Link href="#categories" className="hover:text-[#ccff2f]">Categories</Link>
             <Link href="#featured" className="hover:text-[#ccff2f]">Featured</Link>
-            <Link href="#how" className="hover:text-[#ccff2f]">How it works</Link>
-            <Link href="/contact" className="hover:text-[#ccff2f]">Sell your stuff</Link>
+            <Link href="/contact" className="hover:text-[#ccff2f]">Sell</Link>
           </div>
 
-          {/* Right buttons */}
+          {/* Right actions */}
           <div className="flex items-center gap-2">
-            {/* Mobile search toggle */}
-            <button
-              onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-              className="md:hidden grid h-10 w-10 place-items-center rounded-full border border-white/15 text-sm"
-            >
+            {/* Mobile search */}
+            <button onClick={() => { setMobileSearchOpen(!mobileSearchOpen); setMobileMenuOpen(false) }} className="md:hidden grid h-9 w-9 place-items-center rounded-full border border-white/15 text-sm">
               🔍
             </button>
-            <Link href="/auth/login" className="hidden rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10 sm:block">
-              Login
-            </Link>
-            <Link href="/auth/signup" className="hidden rounded-xl bg-[#ccff2f] px-4 py-2 text-sm font-black text-black transition hover:bg-white sm:block">
-              Sign up
-            </Link>
-            <Link href="/cart" className="relative grid h-10 w-10 place-items-center rounded-full border border-white/15 text-sm font-black">
+
+            {/* Desktop login/signup */}
+            {isLoggedIn ? (
+              <Link href="/profile" className="hidden rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10 sm:block">
+                Profile
+              </Link>
+            ) : (
+              <>
+                <Link href="/auth/login" className="hidden rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10 sm:block">Login</Link>
+                <Link href="/auth/signup" className="hidden rounded-xl bg-[#ccff2f] px-4 py-2 text-sm font-black text-black transition hover:bg-white sm:block">Sign up</Link>
+              </>
+            )}
+
+            {/* Show Login button on mobile when logged out */}
+            {!isLoggedIn && (
+              <Link href="/auth/login" className="sm:hidden rounded-xl bg-[#ccff2f] px-3 py-2 text-xs font-black text-black transition hover:bg-white">
+                Login
+              </Link>
+            )}
+
+            {/* Show Profile on mobile when logged in */}
+            {isLoggedIn && (
+              <Link href="/profile" className="sm:hidden grid h-9 w-9 place-items-center rounded-full border border-white/15 text-sm">
+                👤
+              </Link>
+            )}
+
+            {/* Cart */}
+            <Link href="/cart" className="relative grid h-9 w-9 place-items-center rounded-full border border-white/15 text-sm font-black">
               🛒
-              <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-[#f75ca8] text-[10px] font-black text-black">
-                {cartCount > 9 ? '9+' : cartCount}
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-[#f75ca8] text-[10px] font-black text-black">
+                  {cartCount > 9 ? '9+' : cartCount}
+                </span>
+              )}
             </Link>
+
+            {/* Mobile hamburger */}
+            <button
+              onClick={() => { setMobileMenuOpen(!mobileMenuOpen); setMobileSearchOpen(false) }}
+              className="lg:hidden grid h-9 w-9 place-items-center rounded-full border border-white/15 text-sm font-bold"
+            >
+              {mobileMenuOpen ? '✕' : '☰'}
+            </button>
           </div>
         </div>
 
-        {/* ── MOBILE SEARCH BAR (slides down) ── */}
+        {/* Mobile search bar */}
         <AnimatePresence>
           {mobileSearchOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden"
-            >
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
               <form onSubmit={handleSearch} className="mx-auto max-w-7xl px-1 py-2">
                 <div className="flex items-center rounded-2xl border border-black/10 bg-white px-4 py-3 gap-3 shadow-lg">
                   <span className="text-black/40">🔍</span>
@@ -231,11 +275,82 @@ export default function PreownedHome() {
                     autoFocus
                     className="flex-1 bg-transparent text-black placeholder-black/30 focus:outline-none text-sm"
                   />
-                  <button type="submit" className="rounded-full bg-[#ccff2f] px-4 py-1.5 text-xs font-black text-black">
-                    Search
-                  </button>
+                  <button type="submit" className="rounded-full bg-[#ccff2f] px-4 py-1.5 text-xs font-black text-black">Search</button>
                 </div>
               </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── MOBILE FULL MENU ── */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="mx-auto max-w-7xl px-1 py-2">
+                <div className="rounded-2xl bg-[#101010] border border-white/10 overflow-hidden">
+
+                  {/* Store links */}
+                  <div className="p-4 border-b border-white/10">
+                    <p className="text-xs font-black uppercase tracking-widest text-white/40 mb-3">Browse</p>
+                    <div className="space-y-1">
+                      {[
+                        { href: '/preowned/products', label: '🛍️ All Listings' },
+                        { href: '/preowned/products?featured=true', label: '⭐ Featured' },
+                        { href: '#categories', label: '🗂️ Categories' },
+                        { href: '/', label: '🏪 Main Store' },
+                      ].map(item => (
+                        <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-white hover:bg-white/10 transition">
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Account links */}
+                  <div className="p-4 border-b border-white/10">
+                    <p className="text-xs font-black uppercase tracking-widest text-white/40 mb-3">Account</p>
+                    <div className="space-y-1">
+                      {isLoggedIn ? (
+                        <>
+                          <Link href="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-white hover:bg-white/10 transition">👤 Profile</Link>
+                          <Link href="/orders" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-white hover:bg-white/10 transition">📦 My Orders</Link>
+                        </>
+                      ) : (
+                        <>
+                          <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-white hover:bg-white/10 transition">🔑 Login</Link>
+                          <Link href="/auth/signup" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between gap-3 rounded-xl bg-[#ccff2f] px-3 py-2.5 text-sm font-black text-black hover:bg-white transition">
+                            <span>✨ Sign Up</span>
+                            <span>Free →</span>
+                          </Link>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Support links */}
+                  <div className="p-4">
+                    <p className="text-xs font-black uppercase tracking-widest text-white/40 mb-3">Support</p>
+                    <div className="space-y-1">
+                      {[
+                        { href: '/help', label: '🎧 Help Center' },
+                        { href: '/contact', label: '📬 Contact Us' },
+                        { href: '/contact', label: '💰 Sell Your Stuff' },
+                      ].map(item => (
+                        <Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-white hover:bg-white/10 transition">
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -258,10 +373,7 @@ export default function PreownedHome() {
               Verified finds. Low prices.{' '}
               <span className="rounded-full border-2 border-[#f75ca8] px-2">Big fits.</span>
             </p>
-            <Link
-              href="/preowned/products"
-              className="mt-5 inline-flex items-center gap-4 rounded-xl bg-black px-7 py-4 text-lg font-black text-white transition hover:bg-[#ccff2f] hover:text-black"
-            >
+            <Link href="/preowned/products" className="mt-5 inline-flex items-center gap-4 rounded-xl bg-black px-7 py-4 text-lg font-black text-white transition hover:bg-[#ccff2f] hover:text-black">
               Shop the drop
               <span className="grid h-8 w-8 place-items-center rounded-full bg-[#ccff2f] text-black">→</span>
             </Link>
@@ -278,14 +390,14 @@ export default function PreownedHome() {
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45, delay: index * 0.08 }}
-                className="relative min-h-[245px] rounded-[1.5rem] bg-[#101010] p-6 text-white shadow-xl shadow-black/10"
+                className="relative min-h-[200px] rounded-[1.5rem] bg-[#101010] p-6 text-white shadow-xl shadow-black/10"
               >
-                <div className="text-5xl">{icon}</div>
-                <h2 className="mt-7 text-3xl font-black uppercase leading-[0.95]">{title}</h2>
-                <p className="mt-4 text-lg leading-6 text-white">{desc}</p>
-                <div className="mt-7 w-fit rounded-full bg-[#ccff2f] px-4 py-2 text-xs font-black text-black">{tag}</div>
+                <div className="text-4xl">{icon}</div>
+                <h2 className="mt-5 text-2xl font-black uppercase leading-[0.95]">{title}</h2>
+                <p className="mt-3 text-base leading-6 text-white">{desc}</p>
+                <div className="mt-5 w-fit rounded-full bg-[#ccff2f] px-4 py-2 text-xs font-black text-black">{tag}</div>
                 {index === 0 && (
-                  <div className="absolute -right-5 -top-6 rotate-12 rounded-full bg-[#f75ca8] px-4 py-4 text-sm font-black text-black">VERIFIED</div>
+                  <div className="absolute -right-3 -top-4 rotate-12 rounded-full bg-[#f75ca8] px-3 py-3 text-xs font-black text-black">VERIFIED</div>
                 )}
               </motion.div>
             ))}
@@ -297,18 +409,15 @@ export default function PreownedHome() {
       <section id="categories" className="px-4 pb-6 sm:px-5">
         <div className="mx-auto max-w-7xl">
           <div className="flex gap-3 overflow-x-auto pb-2">
-            {categories.map((cat, index) => {
-              const href = index === 0 ? '/preowned/products' : `/preowned/products?category=${cat}`
-              return (
-                <Link
-                  key={cat}
-                  href={href}
-                  className={`whitespace-nowrap rounded-full px-6 py-3 text-sm font-black transition ${index === 0 ? 'bg-black text-white' : 'border border-black/10 bg-white/60 text-black hover:bg-white'}`}
-                >
-                  {cat}
-                </Link>
-              )
-            })}
+            {categories.map((cat, index) => (
+              <Link
+                key={cat}
+                href={index === 0 ? '/preowned/products' : `/preowned/products?category=${cat}`}
+                className={`whitespace-nowrap rounded-full px-6 py-3 text-sm font-black transition ${index === 0 ? 'bg-black text-white' : 'border border-black/10 bg-white/60 text-black hover:bg-white'}`}
+              >
+                {cat}
+              </Link>
+            ))}
           </div>
         </div>
       </section>
@@ -346,9 +455,7 @@ export default function PreownedHome() {
                       }
                     </Link>
                     <div className="flex h-[260px] flex-col justify-center p-5 md:h-[330px] md:p-8">
-                      <p className="w-fit rounded-full bg-[#ccff2f] px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] text-black">
-                        Featured preowned
-                      </p>
+                      <p className="w-fit rounded-full bg-[#ccff2f] px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] text-black">Featured preowned</p>
                       <h3 className="mt-4 line-clamp-2 text-2xl font-black tracking-tight md:text-4xl">{currentFeatured.name}</h3>
                       <div className="mt-3 flex flex-wrap items-center gap-3">
                         <span className="text-2xl font-black text-[#ccff2f]">{formatPrice(currentFeatured.price)}</span>
@@ -360,9 +467,7 @@ export default function PreownedHome() {
                         Swipe on mobile or use arrows. Auto changes every few seconds.
                       </p>
                       <div className="mt-5 flex flex-wrap gap-3">
-                        <Link href={`/preowned/products/${currentFeatured.id}`} className="rounded-full bg-white px-6 py-2.5 text-sm font-black text-black">
-                          View item
-                        </Link>
+                        <Link href={`/preowned/products/${currentFeatured.id}`} className="rounded-full bg-white px-6 py-2.5 text-sm font-black text-black">View item</Link>
                         {currentFeatured.stock > 0 && (
                           <button
                             onClick={(e) => handleAddToCart(e, currentFeatured)}
@@ -378,8 +483,8 @@ export default function PreownedHome() {
               </AnimatePresence>
               {featured.length > 1 && (
                 <>
-                  <button onClick={prevSlide} className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-lg font-black backdrop-blur transition hover:bg-white/20">‹</button>
-                  <button onClick={nextSlide} className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-lg font-black backdrop-blur transition hover:bg-white/20">›</button>
+                  <button onClick={prevSlide} className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-lg font-black backdrop-blur transition hover:bg-white/20" aria-label="Previous">‹</button>
+                  <button onClick={nextSlide} className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-lg font-black backdrop-blur transition hover:bg-white/20" aria-label="Next">›</button>
                   <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
                     {featured.map((item, index) => (
                       <button key={item.id} onClick={() => setActiveSlide(index)} className={`h-1.5 rounded-full transition-all ${activeSlide === index ? 'w-7 bg-[#ccff2f]' : 'w-1.5 bg-white/25'}`}/>
@@ -398,8 +503,8 @@ export default function PreownedHome() {
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <h2 className="text-3xl font-black uppercase tracking-[-0.04em]">Hot drops</h2>
-              <span className="text-3xl">🔥</span>
-              <span className="-rotate-6 bg-[#ccff2f] px-3 py-1 text-xs font-black uppercase">New heat daily</span>
+              <span className="text-2xl">🔥</span>
+              <span className="-rotate-6 bg-[#ccff2f] px-3 py-1 text-xs font-black uppercase hidden sm:inline">New heat daily</span>
             </div>
             <Link href="/preowned/products" className="text-sm font-black text-black hover:underline">View all →</Link>
           </div>
@@ -438,7 +543,7 @@ export default function PreownedHome() {
 
       {/* Footer */}
       <footer className="border-t border-black/10 px-5 py-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 md:flex-row">
+        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 md:flex-row">
           <div>
             <p className="text-xl font-black">
               Drop<span className="text-[#ccff2f]">EZ</span>{' '}
@@ -446,13 +551,40 @@ export default function PreownedHome() {
             </p>
             <p className="mt-1 text-sm text-black/50">Pre-loved but still slaps.</p>
           </div>
-          <div className="flex flex-wrap justify-center gap-5 text-sm font-bold text-black/55">
-            <Link href="/" className="hover:text-black">Main Store</Link>
-            <Link href="/preowned/products" className="hover:text-black">All Listings</Link>
-            <Link href="/orders" className="hover:text-black">My Orders</Link>
-            <Link href="/contact" className="hover:text-black">Contact</Link>
+          <div className="grid grid-cols-2 gap-8 text-sm md:grid-cols-3">
+            <div>
+              <h4 className="font-black mb-3">Browse</h4>
+              <div className="space-y-2 text-black/55">
+                <Link href="/preowned/products" className="block hover:text-black">All Listings</Link>
+                <Link href="/" className="block hover:text-black">Main Store</Link>
+              </div>
+            </div>
+            <div>
+              <h4 className="font-black mb-3">Account</h4>
+              <div className="space-y-2 text-black/55">
+                <Link href="/profile" className="block hover:text-black">Profile</Link>
+                <Link href="/orders" className="block hover:text-black">My Orders</Link>
+                <Link href="/auth/login" className="block hover:text-black">Login</Link>
+                <Link href="/auth/signup" className="block hover:text-black">Sign Up</Link>
+              </div>
+            </div>
+            <div>
+              <h4 className="font-black mb-3">Support</h4>
+              <div className="space-y-2 text-black/55">
+                <Link href="/help" className="block hover:text-black">Help Center</Link>
+                <Link href="/contact" className="block hover:text-black">Contact</Link>
+                <Link href="/contact" className="block hover:text-black">Sell your stuff</Link>
+              </div>
+            </div>
           </div>
+        </div>
+        <div className="mx-auto mt-8 max-w-7xl border-t border-black/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-black/40">{config.copyright}</p>
+          <div className="flex gap-4 text-xs text-black/40">
+            <a href={config.social?.instagram || '#'} target="_blank" rel="noreferrer" className="hover:text-black">Instagram</a>
+            <a href={config.social?.twitter || '#'} target="_blank" rel="noreferrer" className="hover:text-black">Twitter</a>
+            <a href={config.social?.youtube || '#'} target="_blank" rel="noreferrer" className="hover:text-black">YouTube</a>
+          </div>
         </div>
       </footer>
     </main>
