@@ -1,3 +1,4 @@
+
 'use client'
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -357,6 +358,10 @@ export default function Home() {
           </div>
         </div>
         <p className="mx-auto mt-10 max-w-7xl border-t border-[var(--border-light)] pt-6 text-sm text-[var(--text-placeholder)]">{config.copyright}</p>
+        <a href="/privacy-policy" className="block hover:text-[var(--text-primary)] transition">Privacy Policy</a>
+<a href="/terms" className="block hover:text-[var(--text-primary)] transition">Terms & Conditions</a>
+<a href="/return-policy" className="block hover:text-[var(--text-primary)] transition">Return Policy</a>
+<a href="/shipping-policy" className="block hover:text-[var(--text-primary)] transition">Shipping Policy</a>
       </footer>
     </main>
   )
